@@ -1,7 +1,19 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as django_login, logout as django_logout
 from .models import CustomUser
+from rest_framework.views import APIView
+from rest_framework import status, permissions, generics
+from rest_framework.response import Response
+from .models import CustomUser
+from .permissions import IsSuperUser
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from .serializers import RegisterSerializer, LoginSerializer, UserListSerializer
 
+
+
+# HTML
 def auth_portal(request):
     error = ""
     mode = 'login'
@@ -73,3 +85,44 @@ def landlord_dashboard(request):
 def logout_view(request):
     django_logout(request)
     return redirect('auth_portal')
+
+
+
+# API
+class RegisterAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({"msg": "User registered successfully."}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserListView(generics.ListCreateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserListSerializer
+    permission_classes = [permissions.IsAuthenticated, IsSuperUser]
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserListSerializer
+    permission_classes = [permissions.IsAuthenticated, IsSuperUser]
+
+class LoginAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = authenticate(
+            request,
+            username=serializer.validated_data['username'],
+            password=serializer.validated_data['password']
+        )
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                "token": token.key,
+                "user_id": user.id,
+                "role": user.role
+            })
+        return Response({'detail': 'Invalid credentials'}, status=400)
