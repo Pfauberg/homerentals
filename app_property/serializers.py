@@ -3,6 +3,7 @@ from .models import Property
 
 class PropertySerializer(serializers.ModelSerializer):
     owner_username = serializers.ReadOnlyField(source="owner.username")
+    price_per_day = serializers.IntegerField(min_value=0)
     class Meta:
         model = Property
         fields = [

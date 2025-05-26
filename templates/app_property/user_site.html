@@ -1,4 +1,5 @@
 {% load static %}
+{% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -141,7 +142,7 @@
                 <a class="card" href="{% url 'user_property_detail' prop.id %}">
                     <img class="main-photo" src="{% static 'app_property/' %}{{ prop.type }}.jpg" alt="{{ prop.get_type_display }}" />
                     <div class="title">{{ prop.title }}</div>
-                    <div class="price">{{ prop.price_per_day }} € / 24h</div>
+                    <div class="price">{{ prop.price_per_day|intspace }} € / 24h</div>
                     <div class="meta">
                         Type: {{ prop.get_type_display }}<br />
                         City: {{ prop.city }}<br />

@@ -18,7 +18,7 @@ class Property(models.Model):
     type = models.CharField('Type', max_length=16, choices=TYPE_CHOICES)
     description = models.TextField('Description')
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='properties', verbose_name='Landlord')
-    price_per_day = models.DecimalField('Price per 24 hours', max_digits=10, decimal_places=2)
+    price_per_day = models.PositiveIntegerField('Price per 24 hours (€)')
     city = models.CharField('City', max_length=127)
     address = models.CharField('Address', max_length=255)
     beds = models.PositiveIntegerField('Number of beds')

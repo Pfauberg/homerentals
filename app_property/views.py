@@ -70,7 +70,7 @@ class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
                 title=request.POST['title'],
                 type=request.POST['type'],
                 description=request.POST['description'],
-                price_per_day=request.POST['price_per_day'],
+                price_per_day=int(request.POST['price_per_day']),
                 city=request.POST['city'],
                 address=request.POST['address'],
                 beds=request.POST['beds'],
@@ -103,7 +103,8 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
         prop.title = request.POST.get('title', prop.title)
         prop.type = request.POST.get('type', prop.type)
         prop.description = request.POST.get('description', prop.description)
-        prop.price_per_day = request.POST.get('price_per_day', prop.price_per_day)
+        if 'price_per_day' in request.POST:
+            prop.price_per_day = int(request.POST['price_per_day'])
         prop.city = request.POST.get('city', prop.city)
         prop.address = request.POST.get('address', prop.address)
         prop.beds = request.POST.get('beds', prop.beds)

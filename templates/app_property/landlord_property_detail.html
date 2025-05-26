@@ -1,4 +1,5 @@
 {% load static %}
+{% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -263,7 +264,7 @@
                     </div>
                     <div>
                         <label for="id_price">Price per 24h (€)</label>
-                        <input id="id_price" name="price_per_day" type="number" step="0.01" min="0" value="{{ property.price_per_day }}" required />
+                        <input id="id_price" name="price_per_day" type="number" step="1" min="0" value="{{ property.price_per_day }}" required />
                     </div>
                     <div>
                         <label for="id_beds">Beds</label>

@@ -1,4 +1,5 @@
 {% load static %}
+{% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -129,7 +130,7 @@
             <div class="info-block">
                 <div class="info-content">
                     <h1>{{ property.title }}</h1>
-                    <div class="price">{{ property.price_per_day }} € / 24h</div>
+                    <div class="price">{{ property.price_per_day|intspace }} € / 24h</div>
                     <div class="meta">
                         <strong>Type:</strong> {{ property.get_type_display }}<br />
                         <strong>City:</strong> {{ property.city }}<br />

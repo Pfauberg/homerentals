@@ -1,4 +1,5 @@
 {% load static %}
+{% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -264,7 +265,7 @@
                 <a class="card" href="{% url 'landlord_property_detail' prop.id %}">
                     <img class="main-photo" src="{% static 'app_property/' %}{{ prop.type }}.jpg" alt="{{ prop.get_type_display }}" />
                     <div class="title">{{ prop.title }}</div>
-                    <div class="price">{{ prop.price_per_day }} € / 24h</div>
+                    <div class="price">{{ prop.price_per_day|intspace }} € / 24h</div>
                     <div class="meta">
                         Type: {{ prop.get_type_display }}<br />
                         City: {{ prop.city }}<br />
@@ -294,7 +295,7 @@
                         <option value="villa">Villa</option>
                         <option value="other">Other</option>
                     </select>
-                    <input type="number" name="price_per_day" placeholder="Price per 24h" step="0.01" required />
+                    <input type="number" name="price_per_day" placeholder="Price per 24h" step="1" min="0" required />
                     <input type="number" name="beds" placeholder="Beds" min="1" required />
                     <input type="text" name="city" placeholder="City" required />
                     <input type="text" name="address" placeholder="Address" required />
