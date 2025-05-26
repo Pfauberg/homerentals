@@ -21,9 +21,9 @@ def auth_portal(request):
         if request.user.is_superuser:
             return redirect('/admin/')
         elif request.user.role == "landlord":
-            return redirect('landlord_dashboard')
+            return redirect('landlord_site')
         else:
-            return redirect('user_dashboard')
+            return redirect('user_site')
 
     if request.method == 'POST':
         if 'login' in request.POST:
@@ -35,9 +35,9 @@ def auth_portal(request):
                 if user.is_superuser:
                     return redirect('/admin/')
                 elif user.role == "landlord":
-                    return redirect('landlord_dashboard')
+                    return redirect('landlord_site')
                 else:
-                    return redirect('user_dashboard')
+                    return redirect('user_site')
             else:
                 error = "Invalid username or password."
                 mode = 'login'
@@ -68,19 +68,13 @@ def auth_portal(request):
                     )
                     django_login(request, user)
                     if user.role == "landlord":
-                        return redirect('landlord_dashboard')
+                        return redirect('landlord_site')
                     else:
-                        return redirect('user_dashboard')
+                        return redirect('user_site')
                 except Exception as ex:
                     error = f"Registration error: {str(ex)}"
 
     return render(request, 'app_accounts/auth_portal.html', {'error': error, 'mode': mode})
-
-def user_dashboard(request):
-    return render(request, 'app_accounts/user_dashboard.html')
-
-def landlord_dashboard(request):
-    return render(request, 'app_accounts/landlord_dashboard.html')
 
 def logout_view(request):
     django_logout(request)

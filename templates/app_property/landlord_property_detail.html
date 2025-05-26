@@ -1,0 +1,319 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Edit Property | Home‑Rentals</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+        <style>
+            :root {
+                --primary: #072c46;
+                --bg: #f5f7fa;
+                --radius: 12px;
+            }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: "Inter", sans-serif;
+            }
+            body {
+                background: var(--bg);
+                min-height: 100vh;
+                color: #143;
+                display: flex;
+                justify-content: center;
+                padding-bottom: 180px;
+                padding-top: 80px;
+                padding-left: 60px;
+                padding-right: 60px;
+                position: relative;
+            }
+            .nav-back,
+            .save-btn-wrapper {
+                position: absolute;
+                top: 24px;
+            }
+            .nav-back {
+                left: 24px;
+            }
+            .save-btn-wrapper {
+                right: 24px;
+            }
+            .back-btn,
+            .save-btn {
+                padding: 12px 24px;
+                background: var(--primary);
+                color: #fff;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                transition: filter 0.25s;
+            }
+            .back-btn:hover {
+                filter: brightness(92%);
+            }
+            .save-btn:hover {
+                filter: brightness(95%);
+            }
+            .wrapper {
+                display: flex;
+                gap: 40px;
+                width: 100%;
+                max-width: 1200px;
+            }
+            .photo-block {
+                flex: 0 0 40%;
+                background: #dde3ef;
+                border-radius: var(--radius);
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .photo-block img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .form-block {
+                flex: 1 1 60%;
+                background: #fff;
+                border-radius: var(--radius);
+                box-shadow: 0 4px 32px rgba(8, 64, 190, 0.09);
+                padding: 46px 50px;
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+            }
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 32px;
+            }
+            .header-row h1 {
+                font-size: 28px;
+                color: var(--primary);
+                text-align: left;
+                flex: 1 1 auto;
+            }
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 54px;
+                height: 30px;
+                flex: 0 0 auto;
+            }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 22px;
+                width: 22px;
+                left: 4px;
+                bottom: 4px;
+                background: #fff;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background: var(--primary);
+            }
+            input:checked + .slider:before {
+                transform: translateX(24px);
+            }
+            .status-caption {
+                margin-left: 10px;
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--primary);
+                user-select: none;
+            }
+            .property-form {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px 26px;
+            }
+            label {
+                font-weight: 600;
+                margin-bottom: 6px;
+                display: block;
+            }
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 14px 12px;
+                border-radius: var(--radius);
+                border: 2px solid var(--primary);
+                font-size: 14px;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            input:focus,
+            select:focus,
+            textarea:focus {
+                border-color: #054288;
+            }
+            textarea {
+                resize: vertical;
+                min-height: 80px;
+                grid-column: 1/-1;
+            }
+            .full-span {
+                grid-column: 1/-1;
+            }
+
+            @media (max-width: 1000px) {
+                .wrapper {
+                    flex-direction: column;
+                }
+                .photo-block {
+                    flex: 0 0 300px;
+                }
+                .form-block {
+                    padding: 36px;
+                }
+            }
+            @media (max-width: 620px) {
+                .property-form {
+                    grid-template-columns: 1fr;
+                }
+                textarea {
+                    grid-column: 1;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="nav-back">
+            <form action="{% url 'landlord_site' %}" method="get">
+                <button type="submit" class="back-btn">Back to My Property</button>
+            </form>
+        </div>
+        <div class="save-btn-wrapper">
+            <button form="editForm" type="submit" class="save-btn">Save changes</button>
+        </div>
+        <div class="wrapper">
+            <div class="photo-block">
+                <img src="{% static 'app_property/' %}{{ property.type }}.jpg" alt="{{ property.get_type_display }}" />
+            </div>
+            <div class="form-block">
+                <div class="header-row">
+                    <h1>Edit Property</h1>
+                    <label class="switch">
+                        <input type="checkbox" id="statusToggle" {% if property.status == 'active' %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="status-caption" id="statusLabel">
+                        {% if property.status == 'active' %} Active {% else %} Inactive {% endif %}
+                    </span>
+                </div>
+                <form method="post" id="editForm" class="property-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="id_status" name="status" value="{{ property.status }}" />
+                    <div>
+                        <label for="id_title">Title</label>
+                        <input id="id_title" name="title" type="text" value="{{ property.title }}" required />
+                    </div>
+                    <div>
+                        <label for="id_type">Type</label>
+                        <select id="id_type" name="type" required>
+                            <option value="apartment" {% if property.type == 'apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="house" {% if property.type == 'house' %}selected{% endif %}>House</option>
+                            <option value="studio" {% if property.type == 'studio' %}selected{% endif %}>Studio</option>
+                            <option value="villa" {% if property.type == 'villa' %}selected{% endif %}>Villa</option>
+                            <option value="other" {% if property.type == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_price">Price per 24h (€)</label>
+                        <input id="id_price" name="price_per_day" type="number" step="0.01" min="0" value="{{ property.price_per_day }}" required />
+                    </div>
+                    <div>
+                        <label for="id_beds">Beds</label>
+                        <input id="id_beds" name="beds" type="number" min="1" value="{{ property.beds }}" required />
+                    </div>
+                    <div>
+                        <label for="id_city">City</label>
+                        <input id="id_city" name="city" type="text" value="{{ property.city }}" required />
+                    </div>
+                    <div>
+                        <label for="id_address">Address</label>
+                        <input id="id_address" name="address" type="text" value="{{ property.address }}" required />
+                    </div>
+                    <div class="full-span">
+                        <label>Availability</label>
+                        <input id="date_range" type="text" placeholder="Select date range" autocomplete="off" />
+                        <input type="hidden" name="available_from" id="id_available_from" value="{{ property.available_from|date:'Y-m-d' }}" />
+                        <input type="hidden" name="available_to" id="id_available_to" value="{{ property.available_to|date:'Y-m-d' }}" />
+                    </div>
+                    <div class="full-span">
+                        <label for="id_description">Description</label>
+                        <textarea id="id_description" name="description" rows="4" required>{{ property.description }}</textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script>
+            const rangeInput = document.getElementById("date_range");
+            const fromHidden = document.getElementById("id_available_from");
+            const toHidden = document.getElementById("id_available_to");
+            flatpickr(rangeInput, {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                defaultDate: [fromHidden.value, toHidden.value],
+                onChange(selected) {
+                    if (selected.length === 2) {
+                        fromHidden.value = flatpickr.formatDate(selected[0], "Y-m-d");
+                        toHidden.value = flatpickr.formatDate(selected[1], "Y-m-d");
+                    }
+                },
+                onValueUpdate: updateText,
+                onClose: updateText,
+            });
+            function updateText(selected) {
+                if (selected.length === 2) {
+                    rangeInput.value = flatpickr.formatDate(selected[0], "Y-m-d") + " – " + flatpickr.formatDate(selected[1], "Y-m-d");
+                }
+            }
+            if (fromHidden.value && toHidden.value) {
+                rangeInput.value = fromHidden.value + " – " + toHidden.value;
+            }
+            const statusToggle = document.getElementById("statusToggle");
+            const statusHidden = document.getElementById("id_status");
+            const statusLabel = document.getElementById("statusLabel");
+            function updateStatusFields() {
+                if (statusToggle.checked) {
+                    statusHidden.value = "active";
+                    statusLabel.textContent = " Active ";
+                } else {
+                    statusHidden.value = "inactive";
+                    statusLabel.textContent = " Inactive ";
+                }
+            }
+            statusToggle.addEventListener("change", updateStatusFields);
+            updateStatusFields();
+        </script>
+    </body>
+</html>
