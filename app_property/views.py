@@ -78,6 +78,7 @@ class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
                 available_to=request.POST['available_to'],
                 status='active'
             )
+            messages.success(request, "Property added successfully.")
         return redirect('landlord_site')
 
     def test_func(self):
