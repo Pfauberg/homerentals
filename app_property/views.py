@@ -42,6 +42,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Property
 from django.views import View
 from django.contrib import messages
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class UserSiteView(ListView):
     model = Property
@@ -60,25 +62,30 @@ class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'app_property/landlord_site.html'
 
     def get(self, request):
-        properties = Property.objects.filter(owner=request.user).order_by('-created_at')
-        return render(request, self.template_name, {'properties': properties})
+        props = Property.objects.filter(owner=request.user).order_by('-created_at')
+        today  = timezone.localdate().isoformat()
+        return render(request, self.template_name,
+                      {'properties': props, 'today': today})
 
     def post(self, request):
         if request.POST.get('action') == 'add':
-            Property.objects.create(
-                owner=request.user,
-                title=request.POST['title'],
-                type=request.POST['type'],
-                description=request.POST['description'],
-                price_per_day=int(request.POST['price_per_day']),
-                city=request.POST['city'],
-                address=request.POST['address'],
-                beds=request.POST['beds'],
-                available_from=request.POST['available_from'],
-                available_to=request.POST['available_to'],
-                status='active'
-            )
-            messages.success(request, "Property added successfully.")
+            try:
+                Property.objects.create(
+                    owner=request.user,
+                    title=request.POST['title'],
+                    type=request.POST['type'],
+                    description=request.POST['description'],
+                    price_per_day=int(request.POST['price_per_day']),
+                    city=request.POST['city'],
+                    address=request.POST['address'],
+                    beds=request.POST['beds'],
+                    available_from=request.POST['available_from'],
+                    available_to=request.POST['available_to'],
+                    status='active'
+                )
+                messages.success(request, "Property added successfully.")
+            except ValidationError as e:
+                messages.error(request, "; ".join(sum(e.message_dict.values(), [])))
         return redirect('landlord_site')
 
     def test_func(self):
@@ -92,7 +99,8 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def get(self, request, pk):
         prop = self.get_object()
-        return render(request, self.template_name, {'property': prop})
+        today = timezone.localdate().isoformat()
+        return render(request, self.template_name, {'property': prop, 'today': today})
 
     def post(self, request, pk):
         prop = self.get_object()
@@ -111,8 +119,11 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
         prop.status = request.POST.get('status', prop.status)
         prop.available_from = request.POST.get('available_from', prop.available_from)
         prop.available_to = request.POST.get('available_to', prop.available_to)
-        prop.save()
-        messages.success(request, "Changes saved.")
+        try:
+            prop.save()
+            messages.success(request, "Changes saved.")
+        except ValidationError as e:
+            messages.error(request, "; ".join(sum(e.message_dict.values(), [])))
         return redirect('landlord_site')
 
     def test_func(self):

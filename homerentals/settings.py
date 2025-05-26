@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'homerentals.middleware.AdminLogoutRedirectMiddleware',
+    'homerentals.middleware.AutoUpdateAvailabilityMiddleware',
 ]
 
 ROOT_URLCONF = 'homerentals.urls'

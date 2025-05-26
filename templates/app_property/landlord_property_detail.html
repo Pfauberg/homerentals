@@ -1,5 +1,4 @@
-{% load static %}
-{% load static price_filters %}
+{% load static %} {% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -294,12 +293,14 @@
         </div>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
+            const today = "{{ today }}";
             const rangeInput = document.getElementById("date_range");
             const fromHidden = document.getElementById("id_available_from");
             const toHidden = document.getElementById("id_available_to");
             flatpickr(rangeInput, {
                 mode: "range",
                 dateFormat: "Y-m-d",
+                minDate: today,
                 defaultDate: [fromHidden.value, toHidden.value],
                 onChange(selected) {
                     if (selected.length === 2) {
@@ -318,6 +319,18 @@
             if (fromHidden.value && toHidden.value) {
                 rangeInput.value = fromHidden.value + " – " + toHidden.value;
             }
+            document.getElementById("editForm")?.addEventListener("submit", function (e) {
+                const start = new Date(fromHidden.value);
+                const end = new Date(toHidden.value);
+                if (start < new Date(today)) {
+                    e.preventDefault();
+                    alert("Start date can’t be earlier than today.");
+                }
+                if (end < start) {
+                    e.preventDefault();
+                    alert("End date can’t be earlier than start date.");
+                }
+            });
             const statusToggle = document.getElementById("statusToggle");
             const statusHidden = document.getElementById("id_status");
             const statusLabel = document.getElementById("statusLabel");

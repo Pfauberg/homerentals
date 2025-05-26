@@ -1,5 +1,7 @@
 from django.db import models
 from app_accounts.models import CustomUser
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class Property(models.Model):
     TYPE_CHOICES = [
@@ -35,3 +37,14 @@ class Property(models.Model):
         verbose_name = "Property"
         verbose_name_plural = "Properties"
         ordering = ['-created_at']
+
+    def clean(self):
+        today = timezone.localdate()
+        if self.available_from < today:
+            raise ValidationError({"available_from": "Start date can’t be earlier than today."})
+        if self.available_to < self.available_from:
+            raise ValidationError({"available_to": "End date can’t be earlier than start date."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
