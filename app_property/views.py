@@ -41,6 +41,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Property
 from django.views import View
+from django.contrib import messages
 
 class UserSiteView(ListView):
     model = Property
@@ -94,6 +95,10 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def post(self, request, pk):
         prop = self.get_object()
+        if request.POST.get('action') == 'delete':
+            prop.delete()
+            messages.success(request, "Property deleted successfully.")
+            return redirect('landlord_site')
         prop.title = request.POST.get('title', prop.title)
         prop.type = request.POST.get('type', prop.type)
         prop.description = request.POST.get('description', prop.description)
@@ -105,6 +110,7 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
         prop.available_from = request.POST.get('available_from', prop.available_from)
         prop.available_to = request.POST.get('available_to', prop.available_to)
         prop.save()
+        messages.success(request, "Changes saved.")
         return redirect('landlord_site')
 
     def test_func(self):

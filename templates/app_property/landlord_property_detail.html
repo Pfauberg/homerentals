@@ -25,7 +25,7 @@
                 color: #143;
                 display: flex;
                 justify-content: center;
-                padding-bottom: 180px;
+                padding-bottom: 60px;
                 padding-top: 80px;
                 padding-left: 60px;
                 padding-right: 60px;
@@ -43,7 +43,8 @@
                 right: 24px;
             }
             .back-btn,
-            .save-btn {
+            .save-btn,
+            .delete-btn {
                 padding: 12px 24px;
                 background: var(--primary);
                 color: #fff;
@@ -56,8 +57,23 @@
             .back-btn:hover {
                 filter: brightness(92%);
             }
+            .back-btn {
+                background: var(--primary);
+            }
+            .save-btn {
+                background: var(--primary);
+            }
+            .delete-btn {
+                background: #d12424;
+            }
+            .back-btn:hover {
+                filter: brightness(92%);
+            }
             .save-btn:hover {
                 filter: brightness(95%);
+            }
+            .delete-btn:hover {
+                filter: brightness(92%);
             }
             .wrapper {
                 display: flex;
@@ -271,6 +287,7 @@
                         <label for="id_description">Description</label>
                         <textarea id="id_description" name="description" rows="4" required>{{ property.description }}</textarea>
                     </div>
+                    <button class="delete-btn full-span" type="submit" name="action" value="delete" onclick="return confirm('Delete this property permanently?');">Delete Property</button>
                 </form>
             </div>
         </div>

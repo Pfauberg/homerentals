@@ -223,9 +223,27 @@
                     grid-template-columns: 1fr;
                 }
             }
+            .flash {
+                padding: 12px 18px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-weight: 500;
+                font-size: 16px;
+            }
+            .flash.success {
+                background: #e8f6ec;
+                color: #217b4a;
+            }
+            .flash.error {
+                background: #fbeaea;
+                color: #9e2222;
+            }
         </style>
     </head>
     <body>
+        {% if messages %} {% for message in messages %}
+        <div class="flash {{ message.tags }}">{{ message }}</div>
+        {% endfor %} {% endif %}
         <div class="container">
             <div class="page-header">
                 <button class="add-btn" id="openModalBtn">
