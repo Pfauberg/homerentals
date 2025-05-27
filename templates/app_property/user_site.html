@@ -18,7 +18,7 @@
                 box-sizing: border-box;
                 font-family: "Inter", sans-serif;
             }
-            html{
+            html {
                 scrollbar-gutter: stable;
             }
             body {
@@ -72,28 +72,28 @@
             .search button:hover {
                 filter: brightness(92%);
             }
-            .reset-link{
+            .reset-link {
                 margin-left: 8px;
-                color:#999;
-                visibility:hidden;
-                pointer-events:none;
+                color: #999;
+                visibility: hidden;
+                pointer-events: none;
             }
-            .reset-link.show{
-                visibility:visible;
-                pointer-events:auto;
+            .reset-link.show {
+                visibility: visible;
+                pointer-events: auto;
             }
-            .sort-select{
-                padding:12px 14px;
-                border:1.5px solid var(--primary-color);
-                border-radius:var(--radius);
-                font-size:15px;
-                background:#fff;
-                cursor:pointer;
-                transition:border-color .25s;
+            .sort-select {
+                padding: 12px 14px;
+                border: 1.5px solid var(--primary-color);
+                border-radius: var(--radius);
+                font-size: 15px;
+                background: #fff;
+                cursor: pointer;
+                transition: border-color 0.25s;
             }
-            .sort-select:focus{
-                outline:none;
-                border-color:#064bb9;
+            .sort-select:focus {
+                outline: none;
+                border-color: #064bb9;
             }
             .user-actions {
                 position: absolute;
@@ -194,17 +194,25 @@
             <header class="page-header">
                 <h1>Home-Rentals | Catalog</h1>
                 <div class="action-row">
-                    <form class="search" method="get">
-                        <select name="sort" class="sort-select">
+                    <form id="sortForm" method="get" style="margin-right:12px">
+                        {% if request.GET.q %}
+                        <input type="hidden" name="q" value="{{ request.GET.q }}">
+                        {% endif %}
+                        <select name="sort" class="sort-select" onchange="this.form.submit()">
                             <option value="" {% if not request.GET.sort %}selected{% endif %}>Sort by</option>
                             <option value="latest" {% if request.GET.sort == 'latest' %}selected{% endif %}>Latest</option>
                             <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price ↓</option>
                             <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price ↑</option>
                         </select>
-                        <input type="text" name="q" placeholder="Search by title or description" value="{{ request.GET.q }}" />
+                    </form>
+                    <form class="search" method="get">
+                        {% if request.GET.sort %}
+                            <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+                        {% endif %}
+                        <input type="text" name="q" placeholder="Search…" value="{{ request.GET.q }}">
                         <button type="submit">Search</button>
                         <a href="{% url 'user_site' %}"
-                           class="reset-link{% if request.GET.q %} show{% endif %}">
+                            class="reset-link{% if request.GET.q %} show{% endif %}">
                             Reset
                         </a>
                     </form>
@@ -228,7 +236,7 @@
                         City: {{ prop.city }}<br />
                         Beds: {{ prop.beds }}<br />
                         {% if prop.always_available %} Available: always {% else %} Available: {{ prop.available_from }} – {{ prop.available_to }} {% endif %}
-                        <div style="margin-top: 6px; font-size: 0.90em; color: #7a7a7a;">
+                        <div style="margin-top: 6px; font-size: 0.9em; color: #7a7a7a;">
                             Posted: {{ prop.created_at|date:"d/m, H:i" }} {% if prop.updated_at and prop.updated_at != prop.created_at %} | Edited: {{ prop.updated_at|date:"d/m, H:i" }} {% endif %}
                         </div>
                     </div>
