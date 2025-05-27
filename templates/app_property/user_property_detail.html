@@ -139,15 +139,18 @@
                         <strong>Address:</strong> {{ property.address }}<br />
                         <strong>Beds:</strong> {{ property.beds }}<br />
                         {% if property.always_available %}
-                            <strong>Available:</strong> always<br />
+                        <strong>Available:</strong> always<br />
                         {% else %}
-                            <strong>Available:</strong> {{ property.available_from }} – {{ property.available_to }}<br />
+                        <strong>Available:</strong> {{ property.available_from }} – {{ property.available_to }}<br />
                         {% endif %}
                         <strong>Listed by:</strong> {{ property.owner.username }}
                     </div>
                     <div class="desc">
                         <strong>Description:</strong><br />
                         {{ property.description }}
+                    </div>
+                    <div style="margin-top: 6px; font-size: 0.90em; color: #7a7a7a;">
+                        Posted: {{ property.created_at|date:"d/m, H:i" }} {% if property.updated_at and property.updated_at != property.created_at %} | Edited: {{ property.updated_at|date:"d/m, H:i" }} {% endif %}
                     </div>
                 </div>
             </div>
