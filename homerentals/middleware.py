@@ -16,8 +16,13 @@ class AutoUpdateAvailabilityMiddleware:
 
     def __call__(self, request):
         today = timezone.localdate()
-        Property.objects.filter(always_available=False, available_to__lt=today)\
-                        .update(available_to=today)
-        Property.objects.filter(available_from__lt=today)\
-                        .update(available_from=today)
+        Property.objects.filter(
+            always_available=False,
+            available_to__lt=today,
+            status="active"
+        ).update(status="inactive")
+        Property.objects.filter(
+            status="active",
+            available_from__lt=today
+        ).update(available_from=today)
         return self.get_response(request)
