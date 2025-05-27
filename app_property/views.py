@@ -54,6 +54,7 @@ class UserSiteView(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        sort = self.request.GET.get('sort', '')
         query = self.request.GET.get('q', '').strip()
         if query:
             res = []
@@ -74,7 +75,23 @@ class UserSiteView(ListView):
                 match_desc = best_match(desc)
                 if match_title >= threshold or match_desc >= threshold:
                     res.append(prop)
-            return res
+            qs = res
+        if sort == 'latest':
+            if isinstance(qs, list):
+                qs = sorted(qs, key=lambda x: (x.updated_at or x.created_at, x.created_at), reverse=True)
+            else:
+                qs = qs.order_by('-updated_at', '-created_at')
+        elif sort == 'price_desc':
+            if isinstance(qs, list):
+                qs = sorted(qs, key=lambda x: x.price_per_day, reverse=True)
+            else:
+                qs = qs.order_by('-price_per_day')
+        elif sort == 'price_asc':
+            if isinstance(qs, list):
+                qs = sorted(qs, key=lambda x: x.price_per_day)
+            else:
+                qs = qs.order_by('price_per_day')
+
         return qs
 
 class UserPropertyDetailView(DetailView):

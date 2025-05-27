@@ -50,7 +50,7 @@
                 display: flex;
                 gap: 12px;
                 align-items: center;
-                padding-left: 60px;
+                padding-left: 6px;
             }
             .search input {
                 padding: 12px 14px;
@@ -81,6 +81,19 @@
             .reset-link.show{
                 visibility:visible;
                 pointer-events:auto;
+            }
+            .sort-select{
+                padding:12px 14px;
+                border:1.5px solid var(--primary-color);
+                border-radius:var(--radius);
+                font-size:15px;
+                background:#fff;
+                cursor:pointer;
+                transition:border-color .25s;
+            }
+            .sort-select:focus{
+                outline:none;
+                border-color:#064bb9;
             }
             .user-actions {
                 position: absolute;
@@ -182,6 +195,12 @@
                 <h1>Home-Rentals | Catalog</h1>
                 <div class="action-row">
                     <form class="search" method="get">
+                        <select name="sort" class="sort-select">
+                            <option value="" {% if not request.GET.sort %}selected{% endif %}>Sort by</option>
+                            <option value="latest" {% if request.GET.sort == 'latest' %}selected{% endif %}>Latest</option>
+                            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price ↓</option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price ↑</option>
+                        </select>
                         <input type="text" name="q" placeholder="Search by title or description" value="{{ request.GET.q }}" />
                         <button type="submit">Search</button>
                         <a href="{% url 'user_site' %}"
