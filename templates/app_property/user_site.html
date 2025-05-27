@@ -1,5 +1,4 @@
-{% load static %}
-{% load static price_filters %}
+{% load static %} {% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -147,7 +146,11 @@
                         Type: {{ prop.get_type_display }}<br />
                         City: {{ prop.city }}<br />
                         Beds: {{ prop.beds }}<br />
-                        Dates: {{ prop.available_from }} – {{ prop.available_to }}
+                        {% if prop.always_available %}
+                            Available: always
+                        {% else %}
+                            Dates: {{ prop.available_from }} – {{ prop.available_to }}
+                        {% endif %}
                     </div>
                 </a>
                 {% empty %}

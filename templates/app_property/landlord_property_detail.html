@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Edit Property | Home‑Rentals</title>
+        <title>Edit Property | Home-Rentals</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
         <style>
@@ -13,7 +13,9 @@
                 --bg: #f5f7fa;
                 --radius: 12px;
             }
-            * {
+            *,
+            *::before,
+            *::after {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
@@ -25,10 +27,10 @@
                 color: #143;
                 display: flex;
                 justify-content: center;
-                padding-bottom: 60px;
-                padding-top: 80px;
                 padding-left: 60px;
                 padding-right: 60px;
+                padding-top: 24px;
+                padding-bottom: 24px;
                 position: relative;
             }
             .nav-back,
@@ -42,20 +44,14 @@
             .save-btn-wrapper {
                 right: 24px;
             }
-            .back-btn,
-            .save-btn,
-            .delete-btn {
+            .btn {
                 padding: 12px 24px;
-                background: var(--primary);
-                color: #fff;
                 border: none;
                 border-radius: var(--radius);
                 font-weight: 600;
                 cursor: pointer;
+                color: #fff;
                 transition: filter 0.25s;
-            }
-            .back-btn:hover {
-                filter: brightness(92%);
             }
             .back-btn {
                 background: var(--primary);
@@ -107,22 +103,24 @@
             }
             .header-row {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
-                gap: 32px;
+                gap: 26px;
             }
             .header-row h1 {
                 font-size: 28px;
                 color: var(--primary);
-                text-align: left;
                 flex: 1 1 auto;
+            }
+            .toggle-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
             .switch {
                 position: relative;
                 display: inline-block;
                 width: 54px;
                 height: 30px;
-                flex: 0 0 auto;
             }
             .switch input {
                 opacity: 0;
@@ -158,7 +156,6 @@
                 transform: translateX(24px);
             }
             .status-caption {
-                margin-left: 10px;
                 font-size: 15px;
                 font-weight: 500;
                 color: var(--primary);
@@ -198,7 +195,6 @@
             .full-span {
                 grid-column: 1/-1;
             }
-
             @media (max-width: 1000px) {
                 .wrapper {
                     flex-direction: column;
@@ -223,11 +219,11 @@
     <body>
         <div class="nav-back">
             <form action="{% url 'landlord_site' %}" method="get">
-                <button type="submit" class="back-btn">Back to My Property</button>
+                <button type="submit" class="btn back-btn">Back to My Property</button>
             </form>
         </div>
         <div class="save-btn-wrapper">
-            <button form="editForm" type="submit" class="save-btn">Save changes</button>
+            <button form="editForm" type="submit" class="btn save-btn">Save Changes</button>
         </div>
         <div class="wrapper">
             <div class="photo-block">
@@ -236,15 +232,22 @@
             <div class="form-block">
                 <div class="header-row">
                     <h1>Edit Property</h1>
-                    <label class="switch">
-                        <input type="checkbox" id="statusToggle" {% if property.status == 'active' %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
-                    <span class="status-caption" id="statusLabel">
-                        {% if property.status == 'active' %} Active {% else %} Inactive {% endif %}
-                    </span>
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="statusToggle" form="editForm" />
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-caption" id="statusLabel">Active</span>
+                    </div>
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="alwaysToggle" name="always_available" form="editForm" {% if property.always_available %}checked{% endif %} />
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-caption">Always available</span>
+                    </div>
                 </div>
-                <form method="post" id="editForm" class="property-form">
+                <form method="post" id="editForm" class="property-form" onsubmit="return validateForm(event)">
                     {% csrf_token %}
                     <input type="hidden" id="id_status" name="status" value="{{ property.status }}" />
                     <div>
@@ -285,9 +288,9 @@
                     </div>
                     <div class="full-span">
                         <label for="id_description">Description</label>
-                        <textarea id="id_description" name="description" rows="4" required>{{ property.description }}</textarea>
+                        <textarea id="id_description" name="description" rows="2" required>{{ property.description }}</textarea>
                     </div>
-                    <button class="delete-btn full-span" type="submit" name="action" value="delete" onclick="return confirm('Delete this property permanently?');">Delete Property</button>
+                    <button class="btn delete-btn full-span" type="submit" name="action" value="delete" onclick="return confirm('Delete this property permanently?');">Delete Property</button>
                 </form>
             </div>
         </div>
@@ -297,54 +300,84 @@
             const rangeInput = document.getElementById("date_range");
             const fromHidden = document.getElementById("id_available_from");
             const toHidden = document.getElementById("id_available_to");
-            flatpickr(rangeInput, {
+            const alwaysToggle = document.getElementById("alwaysToggle");
+            const fp = flatpickr(rangeInput, {
                 mode: "range",
                 dateFormat: "Y-m-d",
                 minDate: today,
                 defaultDate: [fromHidden.value, toHidden.value],
                 onChange(selected) {
                     if (selected.length === 2) {
-                        fromHidden.value = flatpickr.formatDate(selected[0], "Y-m-d");
-                        toHidden.value = flatpickr.formatDate(selected[1], "Y-m-d");
+                        fromHidden.value = fp.formatDate(selected[0], "Y-m-d");
+                        toHidden.value = fp.formatDate(selected[1], "Y-m-d");
                     }
                 },
-                onValueUpdate: updateText,
-                onClose: updateText,
+                onValueUpdate: syncText,
+                onClose: syncText,
             });
-            function updateText(selected) {
-                if (selected.length === 2) {
-                    rangeInput.value = flatpickr.formatDate(selected[0], "Y-m-d") + " – " + flatpickr.formatDate(selected[1], "Y-m-d");
+            function syncText(sel) {
+                if (sel && sel.length === 2) {
+                    rangeInput.value = fp.formatDate(sel[0], "Y-m-d") + " – " + fp.formatDate(sel[1], "Y-m-d");
                 }
             }
             if (fromHidden.value && toHidden.value) {
-                rangeInput.value = fromHidden.value + " – " + toHidden.value;
+                rangeInput.value = `${fromHidden.value} – ${toHidden.value}`;
             }
-            document.getElementById("editForm")?.addEventListener("submit", function (e) {
-                const start = new Date(fromHidden.value);
-                const end = new Date(toHidden.value);
-                if (start < new Date(today)) {
-                    e.preventDefault();
-                    alert("Start date can’t be earlier than today.");
+            function toggleAvailability() {
+                if (alwaysToggle.checked) {
+                    rangeInput.disabled = true;
+                    rangeInput.value = "";
+                    fromHidden.value = today;
+                    toHidden.value = "";
+                } else {
+                    rangeInput.disabled = false;
+                    if (!toHidden.value) {
+                        const start = new Date(today);
+                        const end = new Date(today);
+                        end.setDate(end.getDate() + 7);
+                        fromHidden.value = fp.formatDate(start, "Y-m-d");
+                        toHidden.value = fp.formatDate(end, "Y-m-d");
+                        fp.setDate([fromHidden.value, toHidden.value]);
+                        syncText([start, end]);
+                    }
                 }
-                if (end < start) {
-                    e.preventDefault();
-                    alert("End date can’t be earlier than start date.");
-                }
-            });
+            }
+            alwaysToggle.addEventListener("change", toggleAvailability);
+            toggleAvailability();
             const statusToggle = document.getElementById("statusToggle");
             const statusHidden = document.getElementById("id_status");
             const statusLabel = document.getElementById("statusLabel");
-            function updateStatusFields() {
-                if (statusToggle.checked) {
-                    statusHidden.value = "active";
-                    statusLabel.textContent = " Active ";
-                } else {
-                    statusHidden.value = "inactive";
-                    statusLabel.textContent = " Inactive ";
-                }
+            statusToggle.checked = "{{ property.status }}" === "active";
+            function updateStatus() {
+                statusHidden.value = statusToggle.checked ? "active" : "inactive";
+                statusLabel.textContent = statusToggle.checked ? "Active" : "Active";
             }
-            statusToggle.addEventListener("change", updateStatusFields);
-            updateStatusFields();
+            statusToggle.addEventListener("change", updateStatus);
+            updateStatus();
+            function validateForm(e) {
+                if (alwaysToggle.checked) {
+                    if (toHidden.value) {
+                        e.preventDefault();
+                        alert("When 'Always available' is enabled, end date must be empty.");
+                        return false;
+                    }
+                } else {
+                    const s = new Date(fromHidden.value);
+                    const end = new Date(toHidden.value);
+                    const tdy = new Date(today);
+                    if (s < tdy) {
+                        e.preventDefault();
+                        alert("Start date can’t be earlier than today.");
+                        return false;
+                    }
+                    if (end < s) {
+                        e.preventDefault();
+                        alert("End date can’t be earlier than start date.");
+                        return false;
+                    }
+                }
+                return true;
+            }
         </script>
     </body>
 </html>

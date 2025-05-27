@@ -4,22 +4,25 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Home-Rentals | My Properties</title>
+        <title>Home‑Rentals | My Properties</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
         <style>
             :root {
-                --primary-color: #072c46;
-                --bg-color: #f6f8fa;
+                --primary: #072c46;
+                --bg: #f6f8fa;
                 --radius: 12px;
             }
-            * {
+            *,
+            *::before,
+            *::after {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
                 font-family: "Inter", sans-serif;
             }
             body {
-                background: var(--bg-color);
+                background: var(--bg);
                 color: #143;
             }
             .container {
@@ -37,7 +40,7 @@
             .page-header h1 {
                 font-size: 36px;
                 font-weight: 700;
-                color: var(--primary-color);
+                color: var(--primary);
                 text-align: center;
             }
             .user-actions {
@@ -45,34 +48,23 @@
                 align-items: center;
                 gap: 20px;
             }
-            .logout-btn {
+            .btn {
                 padding: 10px 18px;
                 border: none;
                 border-radius: var(--radius);
-                background: var(--primary-color);
-                color: var(--bg-color);
                 font-weight: 600;
                 cursor: pointer;
                 transition: filter 0.25s;
+                color: #fff;
+                background: var(--primary);
             }
-            .logout-btn:hover {
-                filter: brightness(92%);
+            .btn:hover {
+                filter: brightness(95%);
             }
             .add-btn {
-                padding: 10px 18px;
-                border: none;
-                border-radius: var(--radius);
-                background: var(--primary-color);
-                color: #fff;
-                font-weight: 600;
-                cursor: pointer;
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                transition: filter 0.25s;
-            }
-            .add-btn:hover {
-                filter: brightness(95%);
             }
             .add-btn svg {
                 stroke: currentColor;
@@ -85,14 +77,14 @@
             .card {
                 background: #fff;
                 border-radius: var(--radius);
-                box-shadow: 0 2px 18px rgba(14, 39, 108, 0.1);
                 padding: 22px 20px 18px;
+                box-shadow: 0 2px 18px rgba(14, 39, 108, 0.1);
                 display: flex;
                 flex-direction: column;
-                text-decoration: none;
-                color: #143;
-                transition: box-shadow 0.17s, background 0.17s;
                 position: relative;
+                color: #143;
+                text-decoration: none;
+                transition: 0.17s;
             }
             .card:hover {
                 background: #f7faff;
@@ -110,7 +102,7 @@
                 font-size: 1.17em;
                 font-weight: 600;
                 margin-bottom: 6px;
-                color: var(--primary-color);
+                color: var(--primary);
             }
             .price {
                 font-weight: 600;
@@ -126,8 +118,8 @@
                 position: absolute;
                 top: 16px;
                 right: 20px;
-                color: #073ca1;
                 font-size: 1.2em;
+                color: #073ca1;
                 text-decoration: none;
             }
             .edit-link:hover {
@@ -153,7 +145,7 @@
             }
             .modal h2 {
                 font-size: 24px;
-                color: var(--primary-color);
+                color: var(--primary);
                 margin-bottom: 24px;
                 text-align: center;
             }
@@ -181,11 +173,10 @@
             .modal form textarea {
                 width: 100%;
                 padding: 14px 12px;
-                border: 2px solid var(--primary-color);
+                border: 2px solid var(--primary);
                 border-radius: var(--radius);
                 font-size: 14px;
                 outline: none;
-                resize: vertical;
             }
             .modal form input:focus,
             .modal form select:focus,
@@ -195,11 +186,12 @@
             .modal form textarea {
                 min-height: 110px;
                 grid-column: 1/-1;
+                resize: vertical;
             }
             .modal form button[type="submit"] {
                 grid-column: 1/-1;
                 padding: 14px;
-                background: var(--primary-color);
+                background: var(--primary);
                 color: #fff;
                 border: none;
                 border-radius: var(--radius);
@@ -209,6 +201,56 @@
             }
             .modal form button[type="submit"]:hover {
                 filter: brightness(95%);
+            }
+            .toggle-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 54px;
+                height: 30px;
+            }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 22px;
+                width: 22px;
+                left: 4px;
+                bottom: 4px;
+                background: #fff;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+            .switch input:checked + .slider {
+                background: var(--primary);
+            }
+            .switch input:checked + .slider:before {
+                transform: translateX(24px);
+            }
+            .status-caption {
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--primary);
+                user-select: none;
             }
             @media (max-width: 960px) {
                 .cards-grid {
@@ -241,22 +283,25 @@
         </style>
     </head>
     <body>
-        {% if messages %} {% for message in messages %}
+        {% if messages %}{% for message in messages %}
         <div class="flash {{ message.tags }}">{{ message }}</div>
-        {% endfor %} {% endif %}
+        {% endfor %}{% endif %}
         <div class="container">
             <div class="page-header">
-                <button class="add-btn" id="openModalBtn">
+                <button class="btn add-btn" id="openModalBtn">
                     <svg width="20" height="20" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                     Add Property
                 </button>
-                <h1>Home-Rentals | My Properties</h1>
+                <h1>Home‑Rentals | My Properties</h1>
                 <div class="user-actions">
                     <span class="username">{{ user.username }}</span>
-                    <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="logout-btn">Logout</button></form>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn">Logout</button>
+                    </form>
                 </div>
             </div>
             <div class="cards-grid">
@@ -269,9 +314,9 @@
                         Type: {{ prop.get_type_display }}<br />
                         City: {{ prop.city }}<br />
                         Status: {{ prop.get_status_display }}<br />
-                        Dates: {{ prop.available_from }} – {{ prop.available_to }}
+                        {% if prop.always_available %} Available: always {% else %} Dates: {{ prop.available_from }} – {{ prop.available_to }} {% endif %}
                     </div>
-                    <span class="edit-link" title="Edit">&#9998;</span>
+                    <span class="edit-link" title="Edit">✎</span>
                 </a>
                 {% empty %}
                 <p>No properties found.</p>
@@ -282,7 +327,7 @@
             <div class="modal">
                 <button class="close-modal" id="closeModalBtn" aria-label="Close">×</button>
                 <h2>Add Property</h2>
-                <form method="post" action="{% url 'landlord_site' %}">
+                <form method="post" action="{% url 'landlord_site' %}" id="addForm" onsubmit="return validateAddForm(event)">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add" />
                     <input type="text" name="title" placeholder="Title" required />
@@ -298,13 +343,25 @@
                     <input type="number" name="beds" placeholder="Beds" min="1" required />
                     <input type="text" name="city" placeholder="City" required />
                     <input type="text" name="address" placeholder="Address" required />
-                    <input type="date" name="available_from" min="{{ today }}" required />
-                    <input type="date" name="available_to" min="{{ today }}" required />
+                    <div>
+                        <label style="display: none;">Availability</label>
+                        <input id="modal_date_range" type="text" placeholder="Select date range" autocomplete="off" />
+                        <input type="hidden" name="available_from" id="modal_available_from" />
+                        <input type="hidden" name="available_to" id="modal_available_to" />
+                    </div>
+                    <div class="toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" id="modal_always_toggle" name="always_available" />
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-caption">Always available</span>
+                    </div>
                     <textarea name="description" placeholder="Description" rows="4" required></textarea>
                     <button type="submit">Add Property</button>
                 </form>
             </div>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
             const today = "{{ today }}";
             const modal = document.getElementById("propModal");
@@ -313,20 +370,73 @@
             modal.addEventListener("click", (e) => {
                 if (e.target === modal) modal.style.display = "none";
             });
-            document.querySelector("#propModal form")?.addEventListener("submit", (e) => {
-                const start = new Date(e.target.available_from.value);
-                const end = new Date(e.target.available_to.value);
-                const todayDate = new Date(today);
-
-                if (start < todayDate) {
-                    alert("Start date can’t be earlier than today.");
-                    e.preventDefault();
-                }
-                if (end < start) {
-                    alert("End date can’t be earlier than start date.");
-                    e.preventDefault();
-                }
+            const rangeInput = document.getElementById("modal_date_range");
+            const fromHidden = document.getElementById("modal_available_from");
+            const toHidden = document.getElementById("modal_available_to");
+            const alwaysToggle = document.getElementById("modal_always_toggle");
+            const fp = flatpickr(rangeInput, {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                minDate: today,
+                onChange(selected) {
+                    if (selected.length === 2) {
+                        fromHidden.value = fp.formatDate(selected[0], "Y-m-d");
+                        toHidden.value = fp.formatDate(selected[1], "Y-m-d");
+                    }
+                },
+                onValueUpdate: syncText,
+                onClose: syncText,
             });
+            function syncText(sel) {
+                if (sel && sel.length === 2) {
+                    rangeInput.value = fp.formatDate(sel[0], "Y-m-d") + " – " + fp.formatDate(sel[1], "Y-m-d");
+                }
+            }
+            function toggleRangeAvailability() {
+                if (alwaysToggle.checked) {
+                    rangeInput.disabled = true;
+                    rangeInput.value = "";
+                    fromHidden.value = today;
+                    toHidden.value = "";
+                } else {
+                    rangeInput.disabled = false;
+                    if (!toHidden.value) {
+                        const start = new Date(today);
+                        const end = new Date(today);
+                        end.setDate(end.getDate() + 7);
+                        fromHidden.value = fp.formatDate(start, "Y-m-d");
+                        toHidden.value = fp.formatDate(end, "Y-m-d");
+                        fp.setDate([fromHidden.value, toHidden.value]);
+                        syncText([start, end]);
+                    }
+                }
+            }
+            alwaysToggle.addEventListener("change", toggleRangeAvailability);
+            toggleRangeAvailability();
+            function validateAddForm(e) {
+                if (alwaysToggle.checked) {
+                    if (toHidden.value) {
+                        alert("End date must be empty when 'Always available' is enabled.");
+                        e.preventDefault();
+                        return false;
+                    }
+                } else {
+                    const s = new Date(fromHidden.value);
+                    const end = new Date(toHidden.value);
+                    const todayDate = new Date(today);
+                    if (s < todayDate) {
+                        alert("Start date can’t be earlier than today.");
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (end < s) {
+                        alert("End date can’t be earlier than start date.");
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+                return true;
+            }
         </script>
     </body>
 </html>

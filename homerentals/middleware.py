@@ -15,7 +15,9 @@ class AutoUpdateAvailabilityMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        today = timezone.now().date()
-        Property.objects.filter(available_to__lt=today).update(available_to=today)
-        Property.objects.filter(available_from__lt=today).update(available_from=today)
+        today = timezone.localdate()
+        Property.objects.filter(always_available=False, available_to__lt=today)\
+                        .update(available_to=today)
+        Property.objects.filter(available_from__lt=today)\
+                        .update(available_from=today)
         return self.get_response(request)

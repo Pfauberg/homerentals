@@ -69,6 +69,7 @@ class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def post(self, request):
         if request.POST.get('action') == 'add':
+            always = bool(request.POST.get('always_available'))
             try:
                 Property.objects.create(
                     owner=request.user,
@@ -80,7 +81,8 @@ class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
                     address=request.POST['address'],
                     beds=request.POST['beds'],
                     available_from=request.POST['available_from'],
-                    available_to=request.POST['available_to'],
+                    available_to=None if always else request.POST['available_to'],
+                    always_available=always,
                     status='active'
                 )
                 messages.success(request, "Property added successfully.")
@@ -117,8 +119,9 @@ class LandlordPropertyDetailView(LoginRequiredMixin, UserPassesTestMixin, View):
         prop.address = request.POST.get('address', prop.address)
         prop.beds = request.POST.get('beds', prop.beds)
         prop.status = request.POST.get('status', prop.status)
+        prop.always_available = 'always_available' in request.POST
         prop.available_from = request.POST.get('available_from', prop.available_from)
-        prop.available_to = request.POST.get('available_to', prop.available_to)
+        prop.available_to = None if prop.always_available else request.POST.get('available_to', prop.available_to)
         try:
             prop.save()
             messages.success(request, "Changes saved.")
