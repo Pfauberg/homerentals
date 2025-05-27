@@ -44,12 +44,38 @@ from django.views import View
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from difflib import SequenceMatcher
 
 class UserSiteView(ListView):
     model = Property
     template_name = 'app_property/user_site.html'
     context_object_name = 'properties'
     queryset = Property.objects.filter(status='active').order_by('-created_at')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            res = []
+            threshold = 0.7
+            q_lower = query.lower()
+            for prop in qs:
+                title = prop.title.lower()
+                desc = prop.description.lower()
+                def best_match(text):
+                    max_ratio = 0
+                    for i in range(0, len(text) - len(q_lower) + 1):
+                        chunk = text[i:i+len(q_lower)]
+                        ratio = SequenceMatcher(None, q_lower, chunk).ratio()
+                        max_ratio = max(max_ratio, ratio)
+                    return max_ratio
+
+                match_title = best_match(title)
+                match_desc = best_match(desc)
+                if match_title >= threshold or match_desc >= threshold:
+                    res.append(prop)
+            return res
+        return qs
 
 class UserPropertyDetailView(DetailView):
     model = Property
