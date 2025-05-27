@@ -17,6 +17,8 @@ from .serializers import RegisterSerializer, LoginSerializer, UserListSerializer
 def auth_portal(request):
     error = ""
     mode = 'login'
+    login_vals = {}
+    register_vals = {}
     if request.user.is_authenticated:
         if request.user.is_superuser:
             return redirect('/admin/')
@@ -29,6 +31,7 @@ def auth_portal(request):
         if 'login' in request.POST:
             username = request.POST.get('username', '').strip()
             password = request.POST.get('password', '').strip()
+            login_vals = {"username": username}
             user = authenticate(request, username=username, password=password)
             if user:
                 django_login(request, user)
@@ -50,12 +53,21 @@ def auth_portal(request):
             password2 = request.POST.get('confirm_password', '').strip()
             role = request.POST.get('role', '').strip()
             mode = 'register'
+            register_vals = {
+                "username": username,
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "role": role,
+                }
             if password != password2:
                 error = "Passwords do not match."
+                register_vals.update({"password": "", "confirm_password": ""})
             elif not (username and first_name and last_name and email and password and role):
                 error = "Fill out all fields."
             elif CustomUser.objects.filter(username=username).exists():
                 error = "Username already exists."
+                register_vals["username"] = ""
             else:
                 try:
                     user = CustomUser.objects.create_user(
@@ -74,7 +86,16 @@ def auth_portal(request):
                 except Exception as ex:
                     error = f"Registration error: {str(ex)}"
 
-    return render(request, 'app_accounts/auth_portal.html', {'error': error, 'mode': mode})
+    return render(
+        request,
+        'app_accounts/auth_portal.html',
+{
+            'error': error,
+            'mode': mode,
+            'login_vals': login_vals,
+            'register_vals': register_vals,
+        }
+    )
 
 def logout_view(request):
     django_logout(request)

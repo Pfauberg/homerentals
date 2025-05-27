@@ -195,7 +195,7 @@
                             <path d="M4 21v-2a4 4 0 0 1 3-3.87" />
                             <circle cx="12" cy="7" r="4" />
                         </svg>
-                        <input type="text" name="username" placeholder="Username" autocomplete="username" required />
+                        <input type="text" name="username" placeholder="Username" autocomplete="username" value="{{ login_vals.username|default_if_none:'' }}" required />
                     </div>
                     <div class="input-group">
                         <svg width="22" height="22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -219,7 +219,7 @@
                             <path d="M4 21v-2a4 4 0 0 1 3-3.87" />
                             <circle cx="12" cy="7" r="4" />
                         </svg>
-                        <input type="text" name="username" placeholder="Username" required />
+                        <input type="text" name="username" placeholder="Username" value="{{ register_vals.username|default_if_none:'' }}" required />
                     </div>
                     <div class="two-cols">
                         <div class="input-group">
@@ -228,7 +228,7 @@
                                 <path d="M4 21v-2a4 4 0 0 1 3-3.87" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
-                            <input type="text" name="first_name" placeholder="First Name" required />
+                            <input type="text" name="first_name" placeholder="First Name" value="{{ register_vals.first_name|default_if_none:'' }}" required />
                         </div>
                         <div class="input-group">
                             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -236,7 +236,7 @@
                                 <path d="M4 21v-2a4 4 0 0 1 3-3.87" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
-                            <input type="text" name="last_name" placeholder="Last Name" required />
+                            <input type="text" name="last_name" placeholder="Last Name" value="{{ register_vals.last_name|default_if_none:'' }}" required />
                         </div>
                     </div>
                     <div class="input-group">
@@ -244,7 +244,7 @@
                             <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                             <polyline points="22,7 12,13 2,7" />
                         </svg>
-                        <input type="email" name="email" placeholder="Email" autocomplete="email" required />
+                        <input type="email" name="email" placeholder="Email" autocomplete="email" value="{{ register_vals.email|default_if_none:'' }}" required />
                     </div>
                     <div class="two-cols">
                         <div class="input-group">
@@ -264,9 +264,9 @@
                     </div>
                     <div class="input-group">
                         <select name="role" required>
-                            <option value="" selected disabled>Select role</option>
-                            <option value="user">User</option>
-                            <option value="landlord">Landlord</option>
+                            <option value="" disabled {% if not register_vals.role %}selected{% endif %}>Select role</option>
+                            <option value="user" {% if register_vals.role == 'user' %}selected{% endif %}>User</option>
+                            <option value="landlord" {% if register_vals.role == 'landlord' %}selected{% endif %}>Landlord</option>
                         </select>
                     </div>
                     <button type="submit" class="primary-btn" name="register">Sign Up</button>
