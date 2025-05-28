@@ -36,63 +36,110 @@ class AdminPropertyDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # HTML
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, TemplateView, DetailView
+from django.views.generic import ListView, View, DetailView
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Property
-from django.views import View
 from django.contrib import messages
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from datetime import timedelta
 from difflib import SequenceMatcher
+from django.db.models import Q, Min, Max
 
 class UserSiteView(ListView):
     model = Property
     template_name = 'app_property/user_site.html'
     context_object_name = 'properties'
-    queryset = Property.objects.filter(status='active').order_by('-created_at')
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        sort = self.request.GET.get('sort', '')
-        query = self.request.GET.get('q', '').strip()
+        qs = Property.objects.filter(status='active')
+
+        g = self.request.GET
+
+        p_min = g.get('price_min')
+        p_max = g.get('price_max')
+        if p_min:
+            qs = qs.filter(price_per_day__gte=int(p_min))
+        if p_max:
+            qs = qs.filter(price_per_day__lte=int(p_max))
+
+        cities = g.getlist('city')
+        if cities:
+            qs = qs.filter(city__in=cities)
+
+        types = g.getlist('type')
+        if types:
+            qs = qs.filter(type__in=types)
+
+        b_min = g.get('beds_min')
+        b_max = g.get('beds_max')
+        if b_min:
+            qs = qs.filter(beds__gte=int(b_min))
+        if b_max:
+            qs = qs.filter(beds__lte=int(b_max))
+
+        a_only = g.get('always_only')
+        a_from = g.get('avail_start')
+        a_to   = g.get('avail_end')
+        if a_only:
+            qs = qs.filter(always_available=True)
+        elif a_from and a_to:
+            qs = qs.filter(
+                Q(always_available=True) |
+                (Q(available_from__lte=a_from) &
+                 (Q(available_to__isnull=True) | Q(available_to__gte=a_to)))
+            )
+
+        posted = g.get('posted')
+        if posted in ('day', 'week', 'month'):
+            now = timezone.now()
+            delta = {'day': 1, 'week': 7, 'month': 30}[posted]
+            qs = qs.filter(created_at__gte=now - timedelta(days=delta))
+
+        query = g.get('q', '').strip()
         if query:
-            res = []
-            threshold = 0.7
-            q_lower = query.lower()
-            for prop in qs:
-                title = prop.title.lower()
-                desc = prop.description.lower()
-                def best_match(text):
-                    max_ratio = 0
-                    for i in range(0, len(text) - len(q_lower) + 1):
-                        chunk = text[i:i+len(q_lower)]
-                        ratio = SequenceMatcher(None, q_lower, chunk).ratio()
-                        max_ratio = max(max_ratio, ratio)
-                    return max_ratio
+            res, thresh, ql = [], 0.7, query.lower()
 
-                match_title = best_match(title)
-                match_desc = best_match(desc)
-                if match_title >= threshold or match_desc >= threshold:
-                    res.append(prop)
+            def best_match(txt):
+                best = 0
+                for i in range(0, len(txt) - len(ql) + 1):
+                    best = max(best, SequenceMatcher(None, ql, txt[i:i+len(ql)]).ratio())
+                return best
+
+            for pr in qs:
+                if best_match(pr.title.lower()) >= thresh or best_match(pr.description.lower()) >= thresh:
+                    res.append(pr)
             qs = res
-        if sort == 'latest':
-            if isinstance(qs, list):
-                qs = sorted(qs, key=lambda x: (x.updated_at or x.created_at, x.created_at), reverse=True)
-            else:
-                qs = qs.order_by('-updated_at', '-created_at')
-        elif sort == 'price_desc':
-            if isinstance(qs, list):
-                qs = sorted(qs, key=lambda x: x.price_per_day, reverse=True)
-            else:
-                qs = qs.order_by('-price_per_day')
-        elif sort == 'price_asc':
-            if isinstance(qs, list):
-                qs = sorted(qs, key=lambda x: x.price_per_day)
-            else:
-                qs = qs.order_by('price_per_day')
 
+        sort = g.get('sort', '')
+        if sort == 'latest':
+            key = lambda x: (x.updated_at or x.created_at, x.created_at)
+            qs = sorted(qs, key=key, reverse=True) if isinstance(qs, list) else qs.order_by('-updated_at', '-created_at')
+        elif sort == 'price_desc':
+            qs = sorted(qs, key=lambda x: x.price_per_day, reverse=True) if isinstance(qs, list) else qs.order_by('-price_per_day')
+        elif sort == 'price_asc':
+            qs = sorted(qs, key=lambda x: x.price_per_day) if isinstance(qs, list) else qs.order_by('price_per_day')
+
+        self._result_count = len(qs) if isinstance(qs, list) else qs.count()
         return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['total_count'] = getattr(self, '_result_count', len(ctx['properties']))
+
+        ctx['cities_all'] = Property.objects.filter(status='active').values_list('city', flat=True).distinct().order_by('city')
+        ctx['types_all']  = [c[0] for c in Property.TYPE_CHOICES]
+
+        g = self.request.GET
+        ctx['selected_cities'] = g.getlist('city')
+        ctx['selected_types'] = g.getlist('type')
+
+        stats = Property.objects.filter(status='active').aggregate(
+            min_price=Min('price_per_day'), max_price=Max('price_per_day'),
+            min_beds=Min('beds'),            max_beds=Max('beds'),
+        )
+        ctx.update(stats)
+        return ctx
 
 class UserPropertyDetailView(DetailView):
     model = Property
