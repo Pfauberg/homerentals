@@ -42,14 +42,18 @@
                 text-align: center;
                 margin-bottom: 18px;
             }
-
             .action-row {
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                position: relative;
                 flex-wrap: wrap;
                 gap: 16px;
+                justify-content: center;
+                position: relative;
+            }
+            .results-count {
+                font-weight: 600;
+                color: #444;
+                white-space: nowrap;
             }
             .filter-btn,
             .logout-btn {
@@ -191,12 +195,6 @@
                     transform: none;
                 }
             }
-            .results-count {
-                margin: 14px 0 28px;
-                text-align: center;
-                font-weight: 600;
-                color: #444;
-            }
             .modal-overlay {
                 position: fixed;
                 inset: 0;
@@ -303,6 +301,36 @@
                 margin-right: 12px;
                 cursor: pointer;
             }
+            input[type="checkbox"],
+            input[type="radio"] {
+                accent-color: var(--primary);
+            }
+            .noUi-connect {
+                background: var(--primary) !important;
+            }
+            .noUi-handle {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                top: -7px;
+                background: #fff;
+                border: 2px solid var(--primary);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+                cursor: pointer;
+            }
+            .noUi-target {
+                background: #e7ecf3;
+                border: none;
+                border-radius: var(--radius);
+            }
+            .flatpickr-day.selected,
+            .flatpickr-day.startRange,
+            .flatpickr-day.endRange,
+            .flatpickr-day.inRange {
+                background: var(--primary);
+                border-color: var(--primary);
+                color: #fff;
+            }
             #priceValues,
             #bedsValues {
                 font-weight: 600;
@@ -316,24 +344,23 @@
             <header class="page-header">
                 <h1>Home-Rentals | Catalog</h1>
                 <div class="action-row">
+                    <div class="results-count">{{ total_count }} properties found</div>
                     <button type="button" class="filter-btn" id="openFilterBtn">Filter</button>
                     <form id="sortForm" method="get">
-                        {% for key,val in request.GET.items %} {% if key != 'sort' %}
+                        {% for key,val in request.GET.items %}{% if key != 'sort' %}
                         <input type="hidden" name="{{ key }}" value="{{ val }}" />
-                        {% endif %} {% endfor %}
+                        {% endif %}{% endfor %}
                         <select name="sort" class="sort-select" onchange="this.form.submit()">
-                            <option value=""        {% if not request.GET.sort %}selected{% endif %}>Sort by</option>
-                            <option value="latest"   {% if request.GET.sort == 'latest' %}selected{% endif %}>Latest</option>
+                            <<option value="" {% if not request.GET.sort %}selected{% endif %}>Sort by</option>
+                            <option value="latest" {% if request.GET.sort == 'latest' %}selected{% endif %}>Latest</option>
                             <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price ↓</option>
-                            <option value="price_asc"  {% if request.GET.sort == 'price_asc'  %}selected{% endif %}>Price ↑</option>
+                            <option value="price_asc" {% if request.GET.sort == 'price_asc'  %}selected{% endif %}>Price ↑</option>
                         </select>
                     </form>
                     <form class="search" method="get">
-                        {% for key, val in request.GET.items %}
-                            {% if key != 'q' and key != 'page' %}
-                                <input type="hidden" name="{{ key }}" value="{{ val }}" />
-                            {% endif %}
-                        {% endfor %}
+                        {% for key,val in request.GET.items %} {% if key != 'q' and key != 'page' %}
+                        <input type="hidden" name="{{ key }}" value="{{ val }}" />
+                        {% endif %} {% endfor %}
                         <input type="text" name="q" placeholder="Search…" value="{{ request.GET.q }}" />
                         <button type="submit">Search</button>
                         <a href="{% url 'user_site' %}" class="reset-link{% if request.GET.q %} show{% endif %}">Reset</a>
@@ -346,11 +373,10 @@
                         </form>
                     </div>
                 </div>
-                <div class="results-count">{{ total_count }} listings found</div>
             </header>
             <div class="cards">
-                {% for prop in properties %}
-                <a class="card" href="{% url 'user_property_detail' prop.id %}">
+                {% with request.GET.urlencode as qs %} {% for prop in properties %}
+                <a class="card" href="{% url 'user_property_detail' prop.id %}{% if qs %}?{{ qs }}{% endif %}">
                     <img class="main-photo" src="{% static 'app_property/' %}{{ prop.type }}.jpg" alt="{{ prop.get_type_display }}" />
                     <div class="title">{{ prop.title }}</div>
                     <div class="price">{{ prop.price_per_day|intspace }} € / 24h</div>
@@ -366,7 +392,7 @@
                 </a>
                 {% empty %}
                 <p>No listings found.</p>
-                {% endfor %}
+                {% endfor %} {% endwith %}
             </div>
         </div>
         <div class="modal-overlay" id="filterModal">
@@ -388,11 +414,10 @@
                         <div class="category-header">City <span>▼</span></div>
                         <div class="category-content checkbox-list">
                             {% for c in cities_all %}
-                                <label>
-                                    <input type="checkbox" name="city" value="{{ c }}"
-                                           {% if c in selected_cities %}checked{% endif %}>
-                                    {{ c }}
-                                </label>
+                            <label>
+                                <input type="checkbox" name="city" value="{{ c }}" {% if c in selected_cities %}checked{% endif %} />
+                                {{ c }}
+                            </label>
                             {% endfor %}
                         </div>
                     </div>
@@ -400,7 +425,10 @@
                         <div class="category-header">Availability <span>▼</span></div>
                         <div class="category-content">
                             <div style="margin-bottom: 12px;">
-                                <label style="font-weight: 600;"> <input type="checkbox" name="always_only" value="1" id="filterAlways" {% if request.GET.always_only %}checked{% endif %} /> Show only always-available </label>
+                                <label style="font-weight: 600;">
+                                    <input type="checkbox" name="always_only" value="1" id="filterAlways" {% if request.GET.always_only %}checked{% endif %} />
+                                    Show only always-available
+                                </label>
                             </div>
                             <input id="availRange" type="text" placeholder="Select date range" autocomplete="off" />
                             <input type="hidden" name="avail_start" id="availStart" value="{{ request.GET.avail_start }}" />
@@ -411,11 +439,10 @@
                         <div class="category-header">Type <span>▼</span></div>
                         <div class="category-content checkbox-list">
                             {% for t in types_all %}
-                                <label>
-                                    <input type="checkbox" name="type" value="{{ t }}"
-                                           {% if t in selected_types %}checked{% endif %}>
-                                    {{ t }}
-                                </label>
+                            <label>
+                                <input type="checkbox" name="type" value="{{ t }}" {% if t in selected_types %}checked{% endif %} />
+                                {{ t }}
+                            </label>
                             {% endfor %}
                         </div>
                     </div>
@@ -447,58 +474,62 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
         <script>
-            const filterModal = document.getElementById('filterModal');
-            document.getElementById('openFilterBtn').onclick = ()=>filterModal.style.display='flex';
-            document.getElementById('closeFilterBtn').onclick = ()=>filterModal.style.display='none';
-            filterModal.onclick = e=>{if(e.target===filterModal)filterModal.style.display='none';};
+            const filterModal=document.getElementById('filterModal');
+            document.getElementById('openFilterBtn').onclick=()=>filterModal.style.display='flex';
+            document.getElementById('closeFilterBtn').onclick=()=>filterModal.style.display='none';
+            filterModal.onclick=e=>{if(e.target===filterModal)filterModal.style.display='none';};
             document.querySelectorAll('.category-header').forEach(h=>{
                 h.addEventListener('click',()=>{
-                    const cat = h.parentElement;
-                    const open = cat.classList.toggle('open');
+                    const cat=h.parentElement;
+                    const open=cat.classList.toggle('open');
                     if(open){
                         document.querySelectorAll('.filter-category').forEach(c=>{
-                            if(c!==cat) c.classList.remove('open');
+                            if(c!==cat)c.classList.remove('open');
                         });
                     }
                 });
             });
-            const priceSlider = document.getElementById('priceSlider');
+            const priceSlider=document.getElementById('priceSlider');
             noUiSlider.create(priceSlider,{
-                start:[{{ request.GET.price_min|default:min_price|default:0 }}, {{ request.GET.price_max|default:max_price }}],
+                start:[{{ request.GET.price_min|default:min_price|default:0 }},
+                       {{ request.GET.price_max|default:max_price }}],
                 connect:true,step:1,
-                range:{min:{{ min_price|default:0 }}, max:{{ max_price }}},
+                range:{min:{{ min_price|default:0 }},max:{{ max_price }}},
             });
-            const priceMin=document.getElementById('priceMin');
-            const priceMax=document.getElementById('priceMax');
-            const priceVals=document.getElementById('priceValues');
+            const priceMin=document.getElementById('priceMin'),
+                  priceMax=document.getElementById('priceMax'),
+                  priceVals=document.getElementById('priceValues');
             priceSlider.noUiSlider.on('update',(vals,handle)=>{
                 const v=Math.round(vals[handle]);
-                if(handle) priceMax.value=v; else priceMin.value=v;
+                if(handle)priceMax.value=v;else priceMin.value=v;
                 priceVals.textContent=`€${priceMin.value} – €${priceMax.value}`;
             });
-            priceSlider.noUiSlider.set([priceMin.value||{{min_price|default:0}}, priceMax.value||{{max_price}}]);
-
-            const bedsSlider = document.getElementById('bedsSlider');
+            priceSlider.noUiSlider.set([priceMin.value||{{ min_price|default:0 }},
+                                        priceMax.value||{{ max_price }}]);
+            const bedsSlider=document.getElementById('bedsSlider');
             noUiSlider.create(bedsSlider,{
-                start:[{{ request.GET.beds_min|default:min_beds|default:1 }}, {{ request.GET.beds_max|default:max_beds }}],
+                start:[{{ request.GET.beds_min|default:min_beds|default:1 }},
+                       {{ request.GET.beds_max|default:max_beds }}],
                 connect:true,step:1,
-                range:{min:{{ min_beds|default:1 }}, max:{{ max_beds }}},
+                range:{min:{{ min_beds|default:1 }},max:{{ max_beds }}},
             });
-            const bedsMin=document.getElementById('bedsMin');
-            const bedsMax=document.getElementById('bedsMax');
-            const bedsVals=document.getElementById('bedsValues');
+            const bedsMin=document.getElementById('bedsMin'),
+                  bedsMax=document.getElementById('bedsMax'),
+                  bedsVals=document.getElementById('bedsValues');
             bedsSlider.noUiSlider.on('update',(vals,handle)=>{
                 const v=Math.round(vals[handle]);
-                if(handle) bedsMax.value=v; else bedsMin.value=v;
+                if(handle)bedsMax.value=v;else bedsMin.value=v;
                 bedsVals.textContent=`${bedsMin.value} – ${bedsMax.value} beds`;
             });
-            bedsSlider.noUiSlider.set([bedsMin.value||{{min_beds|default:1}}, bedsMax.value||{{max_beds}}]);
-            const availRange = document.getElementById('availRange');
-            const availStart = document.getElementById('availStart');
-            const availEnd   = document.getElementById('availEnd');
-            const alwaysToggle=document.getElementById('filterAlways');
-            const fp = flatpickr(availRange,{
-                mode:'range',dateFormat:'Y-m-d',minDate:new Date().toISOString().split('T')[0],
+            bedsSlider.noUiSlider.set([bedsMin.value||{{ min_beds|default:1 }},
+                                       bedsMax.value||{{ max_beds }}]);
+            const availRange=document.getElementById('availRange'),
+                  availStart=document.getElementById('availStart'),
+                  availEnd=document.getElementById('availEnd'),
+                  alwaysToggle=document.getElementById('filterAlways');
+            const fp=flatpickr(availRange,{
+                mode:'range',dateFormat:'Y-m-d',
+                minDate:new Date().toISOString().split('T')[0],
                 defaultDate:[availStart.value,availEnd.value],
                 onChange(sel){
                     if(sel.length===2){
@@ -515,14 +546,18 @@
             }
             function toggleAvail(){
                 if(alwaysToggle.checked){
-                    availRange.disabled=true;
-                    availRange.value='';availStart.value='';availEnd.value='';
-                }else{
-                    availRange.disabled=false;
-                }
+                    availRange.disabled=true;availRange.value='';
+                    availStart.value='';availEnd.value='';
+                }else{availRange.disabled=false;}
             }
-            alwaysToggle.addEventListener('change',toggleAvail);
-            toggleAvail();
+            alwaysToggle.addEventListener('change',toggleAvail);toggleAvail();
+            document.addEventListener('DOMContentLoaded',()=>{
+                const pos=sessionStorage.getItem('catalogScroll');
+                if(pos!==null)window.scrollTo(0,parseInt(pos));
+            });
+            window.addEventListener('beforeunload',()=>{
+                sessionStorage.setItem('catalogScroll',window.scrollY);
+            });
         </script>
     </body>
 </html>

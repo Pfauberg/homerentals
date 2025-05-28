@@ -44,6 +44,8 @@
                 font-weight: 600;
                 cursor: pointer;
                 transition: filter 0.25s;
+                text-decoration: none;
+                display: inline-block;
             }
             .back-btn:hover {
                 filter: brightness(92%);
@@ -122,7 +124,7 @@
     <body>
         <div class="nav-back">
             <form action="{% url 'user_site' %}">
-                <button class="back-btn">Back to catalog</button>
+                <a href="#" onclick="history.back();return false;" class="back-btn">Back to catalog</a>
             </form>
         </div>
         <div class="detail-wrapper">
