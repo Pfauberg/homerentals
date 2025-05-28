@@ -43,12 +43,10 @@
                 margin-bottom: 18px;
             }
             .action-row {
-                display: flex;
+                display: grid;
+                grid-template-columns: auto auto auto 1fr auto auto;
                 align-items: center;
-                flex-wrap: wrap;
                 gap: 16px;
-                justify-content: center;
-                position: relative;
             }
             .results-count {
                 font-weight: 600;
@@ -87,14 +85,15 @@
                 display: flex;
                 gap: 12px;
                 align-items: center;
-                padding-left: 6px;
+                width: 100%;
             }
             .search input {
+                flex: 1 1 auto;
                 padding: 12px 14px;
                 border: 1.5px solid var(--primary);
                 border-radius: var(--radius);
                 font-size: 15px;
-                width: 350px;
+                width: 100%;
             }
             .search button {
                 padding: 12px 24px;
@@ -120,10 +119,6 @@
                 pointer-events: auto;
             }
             .user-actions {
-                position: absolute;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
                 display: flex;
                 align-items: center;
                 gap: 18px;
@@ -184,15 +179,18 @@
                 }
             }
             @media (max-width: 640px) {
-                .cards {
-                    grid-template-columns: 1fr;
-                }
                 .page-header h1 {
                     font-size: 24px;
                 }
-                .user-actions {
-                    position: static;
-                    transform: none;
+                .action-row {
+                    grid-template-columns: 1fr;
+                    gap: 12px;
+                }
+                .search input {
+                    width: 100%;
+                }
+                .cards {
+                    grid-template-columns: 1fr;
                 }
             }
             .modal-overlay {
