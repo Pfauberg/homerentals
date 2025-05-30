@@ -382,6 +382,9 @@
                         Type: {{ prop.get_type_display }}<br />
                         City: {{ prop.city }}<br />
                         Beds: {{ prop.beds }}<br />
+                        {% if prop.owner %}
+                            Landlord: {{ prop.owner.username }}<br />
+                        {% endif %}
                         {% if prop.always_available %} Available: always {% else %} Available: {{ prop.available_from }} – {{ prop.available_to }} {% endif %}
                         <div style="margin-top: 6px; font-size: 0.9em; color: #7a7a7a;">
                             Posted: {{ prop.created_at|date:"d/m, H:i" }} {% if prop.updated_at and prop.updated_at != prop.created_at %} | Edited: {{ prop.updated_at|date:"d/m, H:i" }} {% endif %}
