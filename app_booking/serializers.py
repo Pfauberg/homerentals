@@ -46,23 +46,27 @@ class BookingStatusUpdateSerializer(serializers.ModelSerializer):
         model  = Booking
         fields = ['status']
 
-    def validate_status(self, value):
+    def validate(self, attrs):
+        new_status = attrs['status']
         request = self.context['request']
         booking = self.instance
-        user    = request.user
+        user = request.user
+
+        if booking.status in [Booking.Status.CONFIRMED, Booking.Status.DECLINED]:
+            raise serializers.ValidationError('You cannot change status after it is confirmed or declined.')
 
         if user.role == 'landlord':
             allowed = [Booking.Status.CONFIRMED, Booking.Status.DECLINED]
         else:
             allowed = [Booking.Status.CANCELED]
 
-        if value not in allowed:
+        if new_status not in allowed:
             raise serializers.ValidationError('You cannot set this status.')
-        return value
+        return attrs
 
-    def update(self, instance, validated):
+    def update(self, instance, validated_data):
         prev = instance.status
-        instance.status = validated['status']
+        instance.status = validated_data['status']
         try:
             instance.save()
         except DjangoValidationError as e:
