@@ -93,6 +93,12 @@
                 line-height: 1.4;
                 margin-bottom: 10px;
             }
+            .total {
+                font-size: 1.05em;
+                font-weight: 600;
+                color: #217b4a;
+                margin-bottom: 5px;
+            }
             .btn {
                 padding: 10px 18px;
                 border: none;
@@ -142,6 +148,11 @@
                             </a>
                             {% endif %}
                         </div>
+                        <div class="total"
+                            data-start="{{ b.start_date }}"
+                            data-end="{{ b.end_date }}"
+                            data-price="{{ b.property.price_per_day }}">
+                        </div>
                         <div class="meta">
                             Dates: {{ b.start_date }} – {{ b.end_date }}<br />
                             Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h<br />
@@ -164,6 +175,11 @@
                 <div class="card">
                     <div>
                         <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                        <div class="total"
+                            data-start="{{ b.start_date }}"
+                            data-end="{{ b.end_date }}"
+                            data-price="{{ b.property.price_per_day }}">
+                        </div>
                         <div class="meta">
                             Dates: {{ b.start_date }} – {{ b.end_date }}<br />
                             Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h<br />
@@ -216,6 +232,25 @@
                 his.style.display = "block";
                 cur.style.display = "none";
             };
+
+            function calcNights(start, end) {
+                const d1 = new Date(start);
+                const d2 = new Date(end);
+                return Math.max(0, Math.round((d2 - d1)/(1000*60*60*24)));
+            }
+            function addTotals() {
+                document.querySelectorAll('.total').forEach(function(el) {
+                    const start = el.getAttribute('data-start');
+                    const end = el.getAttribute('data-end');
+                    const price = Number(el.getAttribute('data-price'));
+                    if (!start || !end) return;
+                    const nights = calcNights(start, end);
+                    if (nights <= 0) return;
+                    const total = nights * price;
+                    el.textContent = `Total: ${total.toLocaleString()} € for ${nights} night${nights>1?'s':''}`;
+                });
+            }
+            addTotals();
         </script>
     </body>
 </html>

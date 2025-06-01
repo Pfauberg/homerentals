@@ -167,7 +167,15 @@
                 border: 2px solid var(--primary);
                 border-radius: var(--radius);
                 font-size: 15px;
-                margin-bottom: 18px;
+                margin-bottom: 10px;
+            }
+            .booking-total {
+                font-size: 1.08em;
+                margin-bottom: 16px;
+                color: #217b4a;
+                font-weight: 600;
+                min-height: 22px;
+                text-align: center;
             }
             .modal button {
                 padding: 14px;
@@ -253,6 +261,7 @@
                 <h2>Book this property</h2>
                 <label>Select date range</label>
                 <input type="text" id="dateRange" placeholder="Start – End" />
+                <div class="booking-total" id="bookingTotal"></div>
                 <button id="submitBooking">Send request</button>
                 <div id="bkMsg" class="msg"></div>
             </div>
@@ -273,17 +282,35 @@
             {% else %}
                 const maxDate = "{{ property.available_to|date:'Y-m-d' }}";
             {% endif %}
+            const pricePerDay = {{ property.price_per_day }};
             const fp=flatpickr('#dateRange',{
                 mode:'range',
                 dateFormat:'Y-m-d',
                 minDate:minDate,
-                maxDate:maxDate||null
+                maxDate:maxDate||null,
+                onChange: showTotal
             });
+            function dayDiff(a,b){
+                return Math.round((b-a)/(1000*60*60*24));
+            }
+            function showTotal(selectedDates){
+                const box=document.getElementById('bookingTotal');
+                if(selectedDates.length===2){
+                    let nights = dayDiff(selectedDates[0],selectedDates[1]);
+                    if(nights<=0){box.textContent='';return;}
+                    let total = nights*pricePerDay;
+                    box.textContent = `Total: ${total.toLocaleString()} € for ${nights} night${nights>1?'s':''}`;
+                }else{
+                    box.textContent='';
+                }
+            }
             function csrftoken(){return document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];}
             const msg=document.getElementById('bkMsg');
             document.getElementById('submitBooking').onclick=async()=>{
                 const sel=fp.selectedDates;
                 if(sel.length!==2){show('Pick start and end dates','err');return;}
+                let nights=dayDiff(sel[0],sel[1]);
+                if(nights<=0){show('End date must be after start date','err');return;}
                 const start=fp.formatDate(sel[0],'Y-m-d');
                 const end=fp.formatDate(sel[1],'Y-m-d');
                 const r=await fetch('/api/bookings/',{
