@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'app_accounts',
     'app_property',
+    'app_booking',
     'rest_framework.authtoken',
 ]
 
@@ -62,6 +63,7 @@ MIDDLEWARE = [
 
     'homerentals.middleware.AdminLogoutRedirectMiddleware',
     'homerentals.middleware.AutoUpdateAvailabilityMiddleware',
+    'homerentals.middleware.AutoUpdateBookingMiddleware',
 ]
 
 ROOT_URLCONF = 'homerentals.urls'
