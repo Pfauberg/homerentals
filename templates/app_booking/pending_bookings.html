@@ -84,6 +84,15 @@
                 color: var(--primary);
                 margin-bottom: 6px;
             }
+            .title a {
+                color: inherit;
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+            .title a:hover {
+                color: #064bb9;
+                text-decoration: underline;
+            }
             .meta {
                 font-size: 0.95em;
                 color: #465066;
@@ -137,7 +146,11 @@
             {% if pending_list %}
                 {% for b in pending_list %}
                 <div class="card" id="card-{{ b.id }}">
-                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="title">
+                        <a href="{% url 'landlord_property_detail' b.property.id %}">
+                            {{ b.property.title }} ({{ b.property.city }})
+                        </a>
+                    </div>
                     <div class="total"
                         data-start="{{ b.start_date }}"
                         data-end="{{ b.end_date }}"
@@ -160,7 +173,11 @@
             {% if current_list %}
                 {% for b in current_list %}
                 <div class="card">
-                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="title">
+                        <a href="{% url 'landlord_property_detail' b.property.id %}">
+                            {{ b.property.title }} ({{ b.property.city }})
+                        </a>
+                    </div>
                     <div class="total"
                         data-start="{{ b.start_date }}"
                         data-end="{{ b.end_date }}"
@@ -181,7 +198,11 @@
             {% if history_list %}
                 {% for b in history_list %}
                 <div class="card">
-                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="title">
+                        <a href="{% url 'landlord_property_detail' b.property.id %}">
+                            {{ b.property.title }} ({{ b.property.city }})
+                        </a>
+                    </div>
                     <div class="total"
                         data-start="{{ b.start_date }}"
                         data-end="{{ b.end_date }}"
