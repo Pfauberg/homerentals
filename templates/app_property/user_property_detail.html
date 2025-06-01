@@ -1,4 +1,4 @@
-{% load static %} {% load static price_filters %}
+{% load static %}{% load static price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,10 +6,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{{ property.title }} – Home-Rentals</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
         <style>
             :root {
-                --primary-color: #072c46;
-                --bg-color: #f5f7fa;
+                --primary: #072c46;
+                --bg: #f5f7fa;
                 --radius: 12px;
             }
             * {
@@ -18,16 +19,16 @@
                 box-sizing: border-box;
                 font-family: "Inter", sans-serif;
             }
+            html {
+                scrollbar-gutter: stable;
+            }
             body {
-                background: var(--bg-color);
+                background: var(--bg);
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                padding-top: 24px;
-                padding-bottom: 24px;
-                padding-left: 60px;
-                padding-right: 60px;
+                padding: 24px 60px 12px;
                 position: relative;
             }
             .nav-back {
@@ -39,8 +40,8 @@
                 padding: 12px 20px;
                 border: none;
                 border-radius: var(--radius);
-                background: var(--primary-color);
-                color: var(--bg-color);
+                background: var(--primary);
+                color: #fff;
                 font-weight: 600;
                 cursor: pointer;
                 transition: filter 0.25s;
@@ -76,20 +77,18 @@
                 background: #fff;
                 border-radius: var(--radius);
                 box-shadow: 0 4px 24px rgba(8, 64, 190, 0.11);
-                padding: 36px 40px;
+                padding: 36px 40px 0;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
             }
             .info-content {
                 flex: 1 1 auto;
             }
             .info-block h1 {
                 font-size: 1.8rem;
-                color: var(--primary-color);
+                color: var(--primary);
                 margin-bottom: 14px;
                 word-wrap: break-word;
-                overflow-wrap: anywhere;
             }
             .price {
                 color: #064bb9;
@@ -104,7 +103,96 @@
                 line-height: 1.5;
                 margin-bottom: 22px;
                 word-wrap: break-word;
-                overflow-wrap: anywhere;
+            }
+            .book-btn {
+                padding: 14px;
+                width: 100%;
+                border: none;
+                border-radius: var(--radius);
+                background: var(--primary);
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                transition: filter 0.25s;
+                margin-bottom: 12px;
+            }
+            .book-btn:hover {
+                filter: brightness(92%);
+            }
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.45);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 999;
+            }
+            .modal {
+                background: #fff;
+                border-radius: var(--radius);
+                width: 420px;
+                max-width: 95%;
+                padding: 34px 38px;
+                box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
+                position: relative;
+            }
+            .modal h2 {
+                color: var(--primary);
+                text-align: center;
+                font-size: 24px;
+                margin-bottom: 22px;
+            }
+            .close-modal {
+                position: relative;
+                background: none;
+                border: none;
+                font-size: 30px;
+                cursor: pointer;
+                line-height: 1;
+                color: #888;
+                margin-bottom: 24px;
+            }
+            .close-modal:hover {
+                color: #444;
+            }
+            .modal label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 6px;
+            }
+            .modal input[type="text"] {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid var(--primary);
+                border-radius: var(--radius);
+                font-size: 15px;
+                margin-bottom: 18px;
+            }
+            .modal button {
+                padding: 14px;
+                width: 100%;
+                border: none;
+                border-radius: var(--radius);
+                background: var(--primary);
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                transition: filter 0.25s;
+            }
+            .modal button:hover {
+                filter: brightness(92%);
+            }
+            .msg {
+                margin-top: 12px;
+                font-weight: 600;
+                text-align: center;
+            }
+            .ok {
+                color: #217b4a;
+            }
+            .err {
+                color: #d12424;
             }
             @media (max-width: 880px) {
                 .detail-wrapper {
@@ -123,9 +211,7 @@
     </head>
     <body>
         <div class="nav-back">
-            <form action="{% url 'user_site' %}">
-                <a href="#" onclick="history.back();return false;" class="back-btn">Back to catalog</a>
-            </form>
+            <a href="#" onclick="history.back();return false;" class="back-btn">Back to catalog</a>
         </div>
         <div class="detail-wrapper">
             <div class="photo-block">
@@ -141,7 +227,7 @@
                         <strong>Address:</strong> {{ property.address }}<br />
                         <strong>Beds:</strong> {{ property.beds }}<br />
                         {% if property.always_available %}
-                        <strong>Available:</strong> always<br />
+                        <strong>Available:</strong> {{ property.available_from }} – always<br />
                         {% else %}
                         <strong>Available:</strong> {{ property.available_from }} – {{ property.available_to }}<br />
                         {% endif %}
@@ -151,11 +237,66 @@
                         <strong>Description:</strong><br />
                         {{ property.description }}
                     </div>
-                    <div style="margin-top: 6px; font-size: 0.90em; color: #7a7a7a;">
-                        Posted: {{ property.created_at|date:"d/m, H:i" }} {% if property.updated_at and property.updated_at != property.created_at %} | Edited: {{ property.updated_at|date:"d/m, H:i" }} {% endif %}
+                    <div style="margin-top: 6px;font-size: 0.9em;color: #7a7a7a;padding-bottom: 12px;">
+                        Posted: {{ property.created_at|date:"d/m, H:i" }}{% if property.updated_at and property.updated_at != property.created_at %} | Edited: {{ property.updated_at|date:"d/m, H:i" }}{% endif %}
                     </div>
+                    {% if user.is_authenticated and user.role == "user" %}
+                    <button class="book-btn" id="openModalBtn">Book this property</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
+        {% if user.is_authenticated and user.role == "user" %}
+        <div class="modal-overlay" id="bookModal">
+            <div class="modal">
+                <button class="close-modal" id="closeModalBtn">×</button>
+                <h2>Book this property</h2>
+                <label>Select date range</label>
+                <input type="text" id="dateRange" placeholder="Start – End" />
+                <button id="submitBooking">Send request</button>
+                <div id="bkMsg" class="msg"></div>
+            </div>
+        </div>
+        {% endif %}
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        {% if user.is_authenticated and user.role == "user" %}
+        <script>
+            const openBtn=document.getElementById('openModalBtn');
+            const modal=document.getElementById('bookModal');
+            const closeBtn=document.getElementById('closeModalBtn');
+            openBtn.onclick=()=>modal.style.display='flex';
+            closeBtn.onclick=()=>modal.style.display='none';
+            modal.onclick=e=>{if(e.target===modal)modal.style.display='none';};
+            const minDate="{{ property.available_from|date:'Y-m-d' }}";
+            {% if property.always_available %}
+                const maxDate = "";
+            {% else %}
+                const maxDate = "{{ property.available_to|date:'Y-m-d' }}";
+            {% endif %}
+            const fp=flatpickr('#dateRange',{
+                mode:'range',
+                dateFormat:'Y-m-d',
+                minDate:minDate,
+                maxDate:maxDate||null
+            });
+            function csrftoken(){return document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1];}
+            const msg=document.getElementById('bkMsg');
+            document.getElementById('submitBooking').onclick=async()=>{
+                const sel=fp.selectedDates;
+                if(sel.length!==2){show('Pick start and end dates','err');return;}
+                const start=fp.formatDate(sel[0],'Y-m-d');
+                const end=fp.formatDate(sel[1],'Y-m-d');
+                const r=await fetch('/api/bookings/',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken()},
+                    body:JSON.stringify({property:{{ property.id }},start_date:start,end_date:end})
+                });
+                const data=await r.json();
+                if(r.ok){show('Booking request sent','ok');modal.style.display='none';}
+                else{show(data.detail||Object.values(data).flat().join(' '),'err');}
+            };
+            function show(t,c){msg.textContent=t;msg.className='msg '+c;}
+        </script>
+        {% endif %}
     </body>
 </html>

@@ -63,6 +63,7 @@
                 font-weight: 600;
                 cursor: pointer;
                 transition: filter 0.25s;
+                text-decoration: none;
             }
             .filter-btn:hover,
             .logout-btn:hover {
@@ -364,6 +365,7 @@
                         <a href="{% url 'user_site' %}" class="reset-link{% if request.GET.q %} show{% endif %}">Reset</a>
                     </form>
                     <div class="user-actions">
+                        <a href="{% url 'my_bookings_html' %}" class="filter-btn">My Bookings</a>
                         <span>{{ user.username }}</span>
                         <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}

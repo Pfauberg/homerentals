@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>My bookings | Home-Rentals</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>
+            :root {
+                --primary: #072c46;
+                --radius: 12px;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: Inter, sans-serif;
+            }
+            html {
+                scrollbar-gutter: stable;
+            }
+            body {
+                background: #f5f7fa;
+                padding: 40px 24px 60px;
+                color: #1a1a1a;
+                position: relative;
+            }
+            .back {
+                position: absolute;
+                top: 24px;
+                left: 24px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: var(--radius);
+                background: var(--primary);
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                transition: filter 0.25s;
+                text-decoration: none;
+            }
+            .back:hover {
+                filter: brightness(92%);
+            }
+            h1 {
+                text-align: center;
+                color: var(--primary);
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+            .tabs {
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 30px;
+            }
+            .tab-btn {
+                padding: 10px 22px;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                background: #e6e9f1;
+                color: var(--primary);
+                transition: filter 0.25s;
+            }
+            .tab-btn.active {
+                background: var(--primary);
+                color: #fff;
+            }
+            .tab-btn:hover {
+                filter: brightness(95%);
+            }
+            .card {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #fff;
+                border-radius: var(--radius);
+                padding: 22px 26px;
+                margin-bottom: 18px;
+                box-shadow: 0 2px 18px rgba(14, 39, 108, 0.08);
+            }
+            .title {
+                font-weight: 600;
+                font-size: 1.1em;
+                color: var(--primary);
+                margin-bottom: 6px;
+            }
+            .meta {
+                font-size: 0.95em;
+                color: #465066;
+                line-height: 1.4;
+                margin-bottom: 10px;
+            }
+            .btn {
+                padding: 10px 18px;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                color: #fff;
+                background: #d12424;
+                transition: filter 0.25s;
+                text-decoration: none;
+            }
+            .btn:hover {
+                filter: brightness(92%);
+            }
+            .status {
+                font-weight: 600;
+            }
+            #history {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        {% if user.role == "user" %}
+        <a href="{% url 'user_site' %}" class="back">Back to catalog</a>
+        {% else %}
+        <a href="{% url 'landlord_site' %}" class="back">Back to my properties</a>
+        {% endif %}
+        <h1>My bookings</h1>
+        <div class="tabs">
+            <button id="btn-current" class="tab-btn active">Current</button>
+            <button id="btn-history" class="tab-btn">History</button>
+        </div>
+        <div id="current">
+            {% if current_list %}
+                {% for b in current_list %}
+                <div class="card" id="card-{{ b.id }}">
+                    <div>
+                        <div class="title">
+                            {% if user.role == "user" %}
+                            <a href="{% url 'user_property_detail' b.property_id %}" style="color: inherit; text-decoration: none;">
+                                {{ b.property.title }} ({{ b.property.city }})
+                            </a>
+                            {% else %}
+                            <a href="{% url 'landlord_property_detail' b.property_id %}" style="color: inherit; text-decoration: none;">
+                                {{ b.property.title }} ({{ b.property.city }})
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="meta">
+                            Dates: {{ b.start_date }} – {{ b.end_date }}<br />
+                            Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h<br />
+                            {% if user.role == "landlord" %}Tenant: {{ b.tenant.username }}<br />{% endif %}
+                            Status: <span class="status" id="st-{{ b.id }}">{{ b.status }}</span>
+                        </div>
+                    </div>
+                    {% if user.role == "user" and b.status == "pending" %}
+                    <button class="btn" onclick="updateStatus({{ b.id }},'canceled')">Cancel</button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No bookings yet.</p>
+            {% endif %}
+        </div>
+        <div id="history">
+            {% if history_list %}
+                {% for b in history_list %}
+                <div class="card">
+                    <div>
+                        <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                        <div class="meta">
+                            Dates: {{ b.start_date }} – {{ b.end_date }}<br />
+                            Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h<br />
+                            {% if user.role == "landlord" %}Tenant: {{ b.tenant.username }}<br />{% endif %}
+                            Status: <span class="status">{{ b.status }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No bookings yet.</p>
+            {% endif %}
+        </div>
+        <script>
+            function csrf() {
+                return document.cookie
+                    .split(";")
+                    .find((c) => c.trim().startsWith("csrftoken="))
+                    ?.split("=")[1];
+            }
+            function updateStatus(id, status) {
+                fetch(`/api/bookings/${id}/`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+                    body: JSON.stringify({ status }),
+                })
+                    .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+                    .then(() => {
+                        document.getElementById(`st-${id}`).textContent = status;
+                        document.querySelector(`#card-${id} .btn`)?.remove();
+                        if (["canceled", "declined"].includes(status)) {
+                            document.getElementById("history").appendChild(document.getElementById(`card-${id}`));
+                        }
+                    })
+                    .catch(() => alert("Error updating booking"));
+            }
+            const btnCur = document.getElementById("btn-current");
+            const btnHis = document.getElementById("btn-history");
+            const cur = document.getElementById("current");
+            const his = document.getElementById("history");
+            btnCur.onclick = () => {
+                btnCur.classList.add("active");
+                btnHis.classList.remove("active");
+                cur.style.display = "block";
+                his.style.display = "none";
+            };
+            btnHis.onclick = () => {
+                btnHis.classList.add("active");
+                btnCur.classList.remove("active");
+                his.style.display = "block";
+                cur.style.display = "none";
+            };
+        </script>
+    </body>
+</html>

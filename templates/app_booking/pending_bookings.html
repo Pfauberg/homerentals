@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Bookings | Home-Rentals</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <style>
+            :root {
+                --primary: #072c46;
+                --radius: 12px;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: Inter, sans-serif;
+            }
+            html {
+                scrollbar-gutter: stable;
+            }
+            body {
+                background: #f5f7fa;
+                padding: 40px 24px 60px;
+                color: #1a1a1a;
+                position: relative;
+            }
+            .back {
+                position: absolute;
+                top: 24px;
+                left: 24px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: var(--radius);
+                background: var(--primary);
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                transition: filter 0.25s;
+                text-decoration: none;
+            }
+            .back:hover {
+                filter: brightness(92%);
+            }
+            h1 {
+                text-align: center;
+                color: var(--primary);
+                font-size: 32px;
+                margin-bottom: 30px;
+            }
+            .tabs {
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 30px;
+            }
+            .tab-btn {
+                padding: 10px 22px;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                background: #e6e9f1;
+                color: var(--primary);
+                transition: filter 0.25s;
+            }
+            .tab-btn.active {
+                background: var(--primary);
+                color: #fff;
+            }
+            .tab-btn:hover {
+                filter: brightness(95%);
+            }
+            .card {
+                background: #fff;
+                border-radius: var(--radius);
+                padding: 22px 26px;
+                margin-bottom: 18px;
+                box-shadow: 0 2px 18px rgba(14, 39, 108, 0.08);
+            }
+            .title {
+                font-weight: 600;
+                font-size: 1.1em;
+                color: var(--primary);
+                margin-bottom: 6px;
+            }
+            .meta {
+                font-size: 0.95em;
+                color: #465066;
+                line-height: 1.4;
+                margin-bottom: 10px;
+            }
+            .btn {
+                padding: 10px 18px;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                color: #fff;
+                transition: filter 0.25s;
+            }
+            .confirm {
+                background: #217b4a;
+                margin-right: 10px;
+            }
+            .decline {
+                background: #d12424;
+            }
+            .btn:hover {
+                filter: brightness(92%);
+            }
+            #requests, #current, #history {
+                display: none;
+            }
+            #requests.active,
+            #current.active,
+            #history.active {
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="{% url 'landlord_site' %}" class="back">Back to my properties</a>
+        <h1>Bookings</h1>
+        <div class="tabs">
+            <button id="btn-requests" class="tab-btn active">Requests</button>
+            <button id="btn-current"  class="tab-btn">Active</button>
+            <button id="btn-history"  class="tab-btn">History</button>
+        </div>
+        <div id="requests" class="active">
+            {% if pending_list %}
+                {% for b in pending_list %}
+                <div class="card" id="card-{{ b.id }}">
+                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="meta">
+                        Tenant: {{ b.tenant.username }}<br />
+                        Dates: {{ b.start_date }} – {{ b.end_date }}<br />
+                        Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h
+                    </div>
+                    <button class="btn confirm" onclick="updateBooking({{ b.id }},'confirmed')">Confirm</button>
+                    <button class="btn decline" onclick="updateBooking({{ b.id }},'declined')">Decline</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No booking requests.</p>
+            {% endif %}
+        </div>
+        <div id="current">
+            {% if current_list %}
+                {% for b in current_list %}
+                <div class="card">
+                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="meta">
+                        Tenant: {{ b.tenant.username }}<br />
+                        Dates: {{ b.start_date }} – {{ b.end_date }}<br />
+                        Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No active bookings.</p>
+            {% endif %}
+        </div>
+        <div id="history">
+            {% if history_list %}
+                {% for b in history_list %}
+                <div class="card">
+                    <div class="title">{{ b.property.title }} ({{ b.property.city }})</div>
+                    <div class="meta">
+                        Tenant: {{ b.tenant.username }}<br />
+                        Dates: {{ b.start_date }} – {{ b.end_date }}<br />
+                        Beds: {{ b.property.beds }} | Price: {{ b.property.price_per_day }} € / 24h<br />
+                        Status: {{ b.status }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No history.</p>
+            {% endif %}
+        </div>
+        <script>
+            function csrf() {
+                return document.cookie
+                    .split(';')
+                    .find(c => c.trim().startsWith('csrftoken='))
+                    ?.split('=')[1];
+            }
+            function updateBooking(id, status) {
+                fetch(`/api/bookings/${id}/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+                    body: JSON.stringify({ status })
+                })
+                .then(r => r.ok ? r.json() : Promise.reject(r))
+                .then(() => {
+                    const card = document.getElementById('card-' + id);
+                    if (status === 'confirmed') {
+                        document.getElementById('current').appendChild(card);
+                        card.querySelectorAll('.btn').forEach(btn => btn.remove());
+                    } else {
+                        document.getElementById('history').appendChild(card);
+                        card.querySelectorAll('.btn').forEach(btn => btn.remove());
+                    }
+                })
+                .catch(() => alert('Error updating booking'));
+            }
+            const btnReq = document.getElementById('btn-requests');
+            const btnCur = document.getElementById('btn-current');
+            const btnHis = document.getElementById('btn-history');
+            const secReq = document.getElementById('requests');
+            const secCur = document.getElementById('current');
+            const secHis = document.getElementById('history');
+            function activate(btn, section) {
+                [btnReq, btnCur, btnHis].forEach(b => b.classList.remove('active'));
+                [secReq, secCur, secHis].forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                section.classList.add('active');
+            }
+            btnReq.onclick = () => activate(btnReq, secReq);
+            btnCur.onclick = () => activate(btnCur, secCur);
+            btnHis.onclick = () => activate(btnHis, secHis);
+        </script>
+    </body>
+</html>

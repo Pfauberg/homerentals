@@ -21,6 +21,9 @@
                 box-sizing: border-box;
                 font-family: "Inter", sans-serif;
             }
+            html {
+                scrollbar-gutter: stable;
+            }
             body {
                 background: var(--bg);
                 color: #143;
@@ -57,6 +60,7 @@
                 transition: filter 0.25s;
                 color: #fff;
                 background: var(--primary);
+                text-decoration: none;
             }
             .btn:hover {
                 filter: brightness(95%);
@@ -297,6 +301,7 @@
                 </button>
                 <h1>Home‑Rentals | My Properties</h1>
                 <div class="user-actions">
+                    <a href="/api/bookings/pending-html/" class="btn">Pending requests</a>
                     <span class="username">{{ user.username }}</span>
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}
