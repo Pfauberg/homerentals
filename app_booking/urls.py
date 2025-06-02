@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import ReviewCreateView, ReviewListView
 
 urlpatterns = [
     path('bookings/',            views.BookingCreateView.as_view(),    name='api_booking_create'),
@@ -8,4 +9,6 @@ urlpatterns = [
     path('bookings/pending/',    views.PendingBookingListView.as_view(), name='api_pending_bookings'),
     path('bookings/my-html/',       views.MyBookingsHTMLView.as_view(),       name='my_bookings_html'),
     path('bookings/pending-html/',  views.PendingBookingsHTMLView.as_view(),  name='pending_bookings_html'),
+    path('reviews/', ReviewCreateView.as_view(), name='api_review_create'),
+    path('reviews/property/<int:property_id>/', ReviewListView.as_view(), name='api_review_list'),
 ]

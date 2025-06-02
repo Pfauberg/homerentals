@@ -86,3 +86,15 @@ class Booking(models.Model):
             prop.status = 'inactive'
 
         prop.save(update_fields=['available_from', 'available_to', 'status'])
+
+class Review(models.Model):
+    property = models.ForeignKey('app_property.Property', on_delete=models.CASCADE, related_name='reviews')
+    author = models.ForeignKey('app_accounts.CustomUser', on_delete=models.CASCADE, related_name='reviews')
+    booking = models.ForeignKey('app_booking.Booking', on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField()
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('property', 'author', 'booking')
+        ordering = ['-created_at']

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.db import transaction
-from .models import Booking
+from .models import Booking, Review
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 
@@ -72,3 +72,39 @@ class BookingStatusUpdateSerializer(serializers.ModelSerializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.message_dict or e.messages)
         return instance
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['id', 'property', 'booking', 'rating', 'text', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        booking = attrs.get('booking')
+        prop = attrs.get('property')
+        if booking.tenant != user:
+            raise serializers.ValidationError("You can only review bookings you made.")
+        if booking.property != prop:
+            raise serializers.ValidationError("Booking does not match property.")
+        if booking.status != 'finished':
+            raise serializers.ValidationError("Can only review after booking is finished.")
+        if Review.objects.filter(property=prop, author=user, booking=booking).exists():
+            raise serializers.ValidationError("You have already reviewed this booking.")
+        rating = attrs.get('rating')
+        if not (1 <= rating <= 5):
+            raise serializers.ValidationError("Rating must be 1-5.")
+        return attrs
+
+    def create(self, validated_data):
+        validated_data['author'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class ReviewListSerializer(serializers.ModelSerializer):
+    author_username = serializers.ReadOnlyField(source='author.username')
+    class Meta:
+        model = Review
+        fields = ['id', 'property', 'author', 'author_username', 'booking', 'rating', 'text', 'created_at']
+        read_only_fields = fields

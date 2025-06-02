@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
 
-from .models import Booking
+from .models import Booking, Review
 from .serializers import (
-    BookingCreateSerializer, BookingSerializer, BookingStatusUpdateSerializer
+    BookingCreateSerializer, BookingSerializer, BookingStatusUpdateSerializer, ReviewCreateSerializer, ReviewListSerializer
 )
 from .permissions import IsTenantOrLandlordOrAdmin, IsUserRole
 
@@ -50,6 +50,20 @@ class PendingBookingListView(generics.ListAPIView):
         return Booking.objects.filter(
             property__owner=user, status=Booking.Status.PENDING
         )
+
+
+class ReviewCreateView(generics.CreateAPIView):
+    serializer_class = ReviewCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ReviewListView(generics.ListAPIView):
+    serializer_class = ReviewListSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        prop_id = self.kwargs['property_id']
+        return Review.objects.filter(property_id=prop_id)
 
 
 
