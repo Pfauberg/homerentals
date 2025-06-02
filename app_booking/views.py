@@ -6,9 +6,14 @@ from django.views.generic import ListView
 
 from .models import Booking, Review
 from .serializers import (
-    BookingCreateSerializer, BookingSerializer, BookingStatusUpdateSerializer, ReviewCreateSerializer, ReviewListSerializer
+    BookingCreateSerializer,
+    BookingSerializer,
+    BookingStatusUpdateSerializer,
+    ReviewCreateSerializer,
+    ReviewListSerializer,
+    ReviewUpdateSerializer
 )
-from .permissions import IsTenantOrLandlordOrAdmin, IsUserRole
+from .permissions import IsTenantOrLandlordOrAdmin, IsUserRole, IsReviewAuthorOrAdmin
 
 
 
@@ -64,6 +69,24 @@ class ReviewListView(generics.ListAPIView):
     def get_queryset(self):
         prop_id = self.kwargs['property_id']
         return Review.objects.filter(property_id=prop_id)
+
+
+class MyReviewListView(generics.ListAPIView):
+    serializer_class = ReviewListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(author=self.request.user)
+
+
+class ReviewRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsReviewAuthorOrAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method in ('PATCH', 'PUT'):
+            return ReviewUpdateSerializer
+        return ReviewListSerializer
 
 
 

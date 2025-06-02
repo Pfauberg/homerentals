@@ -108,3 +108,15 @@ class ReviewListSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'property', 'author', 'author_username', 'booking', 'rating', 'text', 'created_at']
         read_only_fields = fields
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['rating', 'text']
+
+    def validate(self, attrs):
+        rating = attrs.get('rating', getattr(self.instance, 'rating', None))
+        if not (1 <= rating <= 5):
+            raise serializers.ValidationError("Rating must be 1-5.")
+        return attrs
