@@ -45,6 +45,7 @@ from django.core.exceptions import ValidationError
 from datetime import timedelta
 from difflib import SequenceMatcher
 from django.db.models import Q, Min, Max
+from app_booking.models import Review, Booking
 
 class UserSiteView(ListView):
     model = Property
@@ -147,6 +148,70 @@ class UserPropertyDetailView(DetailView):
     context_object_name = 'property'
     queryset = Property.objects.filter(status='active')
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        prop = self.object
+        user_review = None
+        last_booking = None
+
+        if user.is_authenticated and user.role == "user":
+            last_booking = (
+                Booking.objects.filter(property=prop, tenant=user, status='finished')
+                .order_by('-end_date').first()
+            )
+            if last_booking:
+                user_review = Review.objects.filter(
+                    property=prop, author=user, booking=last_booking
+                ).first()
+        ctx['user_review'] = user_review
+        ctx['last_booking'] = last_booking
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        user = request.user
+        prop = self.object
+        action = request.POST.get('action')
+        rating = int(request.POST.get('rating', 0))
+        text = request.POST.get('text', '').strip()
+        booking_id = request.POST.get('booking_id')
+        last_booking = Booking.objects.filter(
+            id=booking_id, property=prop, tenant=user, status='finished'
+        ).first()
+
+        if not last_booking:
+            messages.error(request, "You can only review after completing your stay.")
+            return self.get(request, *args, **kwargs)
+
+        review = Review.objects.filter(property=prop, author=user, booking=last_booking).first()
+
+        if action == 'add_review' and not review:
+            if 1 <= rating <= 5 and text:
+                Review.objects.create(
+                    property=prop,
+                    author=user,
+                    booking=last_booking,
+                    rating=rating,
+                    text=text,
+                )
+                messages.success(request, "Review posted.")
+            else:
+                messages.error(request, "Invalid rating or text.")
+        elif action == 'edit_review' and review:
+            if 1 <= rating <= 5 and text:
+                review.rating = rating
+                review.text = text
+                review.save()
+                messages.success(request, "Review updated.")
+            else:
+                messages.error(request, "Invalid rating or text.")
+        elif action == 'delete_review' and review:
+            review.delete()
+            messages.success(request, "Review deleted.")
+        else:
+            messages.error(request, "Operation not allowed.")
+        return redirect('user_property_detail', pk=prop.pk)
 
 class LandlordSiteView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = 'app_property/landlord_site.html'

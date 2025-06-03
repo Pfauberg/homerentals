@@ -1,9 +1,9 @@
-{% load static %} {% load static price_filters %}
+{% load static %}{% load price_filters %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
         <title>Edit Property | Home-Rentals</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
@@ -30,10 +30,7 @@
                 color: #143;
                 display: flex;
                 justify-content: center;
-                padding-left: 60px;
-                padding-right: 60px;
-                padding-top: 24px;
-                padding-bottom: 24px;
+                padding: 24px 60px;
                 position: relative;
             }
             .nav-back,
@@ -54,7 +51,7 @@
                 font-weight: 600;
                 cursor: pointer;
                 color: #fff;
-                transition: filter 0.25s;
+                transition: 0.25s;
             }
             .back-btn {
                 background: var(--primary);
@@ -65,23 +62,20 @@
             .delete-btn {
                 background: #d12424;
             }
-            .back-btn:hover {
-                filter: brightness(92%);
-            }
-            .save-btn:hover {
-                filter: brightness(95%);
-            }
-            .delete-btn:hover {
+            .btn:hover {
                 filter: brightness(92%);
             }
             .wrapper {
-                display: flex;
+                display: grid;
+                grid-template-columns: 2fr 3fr;
+                grid-template-rows: auto auto;
+                grid-template-areas: "photo form" "reviews reviews";
                 gap: 40px;
                 width: 100%;
                 max-width: 1200px;
             }
             .photo-block {
-                flex: 0 0 40%;
+                grid-area: photo;
                 background: #dde3ef;
                 border-radius: var(--radius);
                 overflow: hidden;
@@ -95,7 +89,7 @@
                 object-fit: cover;
             }
             .form-block {
-                flex: 1 1 60%;
+                grid-area: form;
                 background: #fff;
                 border-radius: var(--radius);
                 box-shadow: 0 4px 32px rgba(8, 64, 190, 0.09);
@@ -133,17 +127,14 @@
             .slider {
                 position: absolute;
                 cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
+                inset: 0;
                 background: #ccc;
                 transition: 0.4s;
                 border-radius: 34px;
             }
             .slider:before {
-                position: absolute;
                 content: "";
+                position: absolute;
                 height: 22px;
                 width: 22px;
                 left: 4px;
@@ -198,12 +189,50 @@
             .full-span {
                 grid-column: 1/-1;
             }
+            .reviews-block {
+                grid-area: reviews;
+                background: #fff;
+                border-radius: var(--radius);
+                box-shadow: 0 4px 32px rgba(8, 64, 190, 0.09);
+                padding: 34px 40px;
+            }
+            .reviews-block h2 {
+                font-size: 1.5rem;
+                color: var(--primary);
+                margin-bottom: 20px;
+            }
+            .review-card {
+                border: 1.5px solid #e4e7f1;
+                border-radius: var(--radius);
+                padding: 18px 20px;
+                margin-bottom: 16px;
+            }
+            .review-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .review-author {
+                font-weight: 600;
+                color: var(--primary);
+            }
+            .review-date {
+                font-size: 0.85em;
+                color: #666;
+            }
+            .review-rating {
+                font-weight: 600;
+                color: #095ad2;
+                margin-bottom: 6px;
+            }
             @media (max-width: 1000px) {
                 .wrapper {
-                    flex-direction: column;
+                    grid-template-columns: 1fr;
+                    grid-template-areas: "photo" "form" "reviews";
                 }
                 .photo-block {
-                    flex: 0 0 300px;
+                    height: 300px;
                 }
                 .form-block {
                     padding: 36px;
@@ -296,6 +325,18 @@
                     <button class="btn delete-btn full-span" type="submit" name="action" value="delete" onclick="return confirm('Delete this property permanently?');">Delete Property</button>
                 </form>
             </div>
+            <div class="reviews-block">
+                <h2>Reviews</h2>
+                {% for r in property.reviews.all %}
+                <div class="review-card">
+                    <div class="review-head"><span class="review-author">{{ r.author.username }}</span><span class="review-date">{{ r.created_at|date:"Y-m-d H:i" }}</span></div>
+                    <div class="review-rating">Rating: {{ r.rating }}/5</div>
+                    <div>{{ r.text }}</div>
+                </div>
+                {% empty %}
+                <p>No reviews yet.</p>
+                {% endfor %}
+            </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
@@ -309,24 +350,22 @@
                 dateFormat: "Y-m-d",
                 minDate: today,
                 defaultDate: [fromHidden.value, toHidden.value],
-                onChange(selected) {
-                    if (selected.length === 2) {
-                        fromHidden.value = fp.formatDate(selected[0], "Y-m-d");
-                        toHidden.value = fp.formatDate(selected[1], "Y-m-d");
+                onChange(sel) {
+                    if (sel.length === 2) {
+                        fromHidden.value = fp.formatDate(sel[0], "Y-m-d");
+                        toHidden.value = fp.formatDate(sel[1], "Y-m-d");
                     }
                 },
-                onValueUpdate: syncText,
-                onClose: syncText,
+                onValueUpdate: sync,
+                onClose: sync,
             });
-            function syncText(sel) {
+            function sync(sel) {
                 if (sel && sel.length === 2) {
                     rangeInput.value = fp.formatDate(sel[0], "Y-m-d") + " – " + fp.formatDate(sel[1], "Y-m-d");
                 }
             }
-            if (fromHidden.value && toHidden.value) {
-                rangeInput.value = `${fromHidden.value} – ${toHidden.value}`;
-            }
-            function toggleAvailability() {
+            if (fromHidden.value && toHidden.value) rangeInput.value = `${fromHidden.value} – ${toHidden.value}`;
+            function toggleAvail() {
                 if (alwaysToggle.checked) {
                     rangeInput.disabled = true;
                     rangeInput.value = "";
@@ -335,40 +374,39 @@
                 } else {
                     rangeInput.disabled = false;
                     if (!toHidden.value) {
-                        const start = new Date(today);
-                        const end = new Date(today);
-                        end.setDate(end.getDate() + 7);
-                        fromHidden.value = fp.formatDate(start, "Y-m-d");
-                        toHidden.value = fp.formatDate(end, "Y-m-d");
+                        const s = new Date(today);
+                        const e = new Date(today);
+                        e.setDate(e.getDate() + 7);
+                        fromHidden.value = fp.formatDate(s, "Y-m-d");
+                        toHidden.value = fp.formatDate(e, "Y-m-d");
                         fp.setDate([fromHidden.value, toHidden.value]);
-                        syncText([start, end]);
+                        sync([s, e]);
                     }
                 }
             }
-            alwaysToggle.addEventListener("change", toggleAvailability);
-            toggleAvailability();
+            alwaysToggle.addEventListener("change", toggleAvail);
+            toggleAvail();
             const statusToggle = document.getElementById("statusToggle");
             const statusHidden = document.getElementById("id_status");
             const statusLabel = document.getElementById("statusLabel");
             statusToggle.checked = "{{ property.status }}" === "active";
-            function updateStatus() {
+            function upd() {
                 statusHidden.value = statusToggle.checked ? "active" : "inactive";
                 statusLabel.textContent = statusToggle.checked ? "Active" : "Active";
             }
-            statusToggle.addEventListener("change", updateStatus);
-            updateStatus();
+            statusToggle.addEventListener("change", upd);
+            upd();
             function validateForm(e) {
-                if (alwaysToggle.checked) {
-                    if (toHidden.value) {
-                        e.preventDefault();
-                        alert("When 'Always available' is enabled, end date must be empty.");
-                        return false;
-                    }
-                } else {
+                if (alwaysToggle.checked && toHidden.value) {
+                    e.preventDefault();
+                    alert("When 'Always available' is enabled, end date must be empty.");
+                    return false;
+                }
+                if (!alwaysToggle.checked) {
                     const s = new Date(fromHidden.value);
                     const end = new Date(toHidden.value);
-                    const tdy = new Date(today);
-                    if (s < tdy) {
+                    const t = new Date(today);
+                    if (s < t) {
                         e.preventDefault();
                         alert("Start date can’t be earlier than today.");
                         return false;
