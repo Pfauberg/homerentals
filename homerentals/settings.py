@@ -86,6 +86,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'homerentals.wsgi.application'
 
+AUTHENTICATION_BACKENDS = [
+    'app_accounts.backends.UsernameOrEmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
